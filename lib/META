@@ -1,0 +1,6 @@
+name = "rtree"
+version = "1.0"
+description = "OCaml r-tree implementation" 
+archive(byte) = "rtree.cma"
+archive(native) = "rtree.cmxa"
+requires = "extlib"
