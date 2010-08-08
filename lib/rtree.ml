@@ -1,132 +1,131 @@
-module type BoundableType =
-  sig
-    type t
-    val to_envelope : t -> float * float * float * float
-  end
+(* XXX todo -- make non-functor version of this that always takes the *)
+(* envelope directly, then a functor version that's just implemented on *)
+(* top of this. *)
 
-module type R =
-  sig
-    type elem
-    type t
-    val empty : t
-    val add : t -> elem -> t
-    val find : t -> (float * float * float * float) -> elem option
-  end
+type envelope = float * float * float * float
 
-module Make(B: BoundableType): (R with type elem = B.t) =
-  struct
-    type envelope = float * float * float * float
-    type elem = B.t
-    type t
-      = Node of envelope * (t list)
-      | Leaf of envelope * (elem list)
-      | Empty
+type 'a t
+  = Node of envelope * 'a t list
+  | Leaf of envelope * (envelope * 'a) list
+  | Empty
 
-    let envelope_of_node = function
-      | Node (e, _) | Leaf (e, _) -> e
-      | Empty -> raise (Invalid_argument "Empty nodes have no envelopes")
+let envelope_of_node = function
+  | Node (e, _) | Leaf (e, _) -> e
+  | Empty -> raise (Invalid_argument "empty nodes have no envelopes")
 
-    (* XXX *)
-    let max_node_load = 8
+(* XXX! *)
+let max_node_load = 8
 
-    let envelope_within (x0, x1, y0, y1) (x0', x1', y0', y1') =
-      x0 <= x0' && x1 >= x1' && y0 <= y0' && y1 >= y1'
+let envelope_within (x0, x1, y0, y1) (x0', x1', y0', y1') =
+  x0 <= x0' && x1 >= x1' && y0 <= y0' && y1 >= y1'
 
-    let ranges_intersect a b a' b' =
-      
+let ranges_intersect a b a' b' = a' <= b && a <= b'
 
-    let envelope_intersects (x0, x1, y0, y1) (x0', x1', y0', y1') =
+let envelope_intersects (x0, x1, y0, y1) (x0', x1', y0', y1') =
+  (* For two envelopes to intersect, both of their ranges do. *)
+  ranges_intersect x0 x1 x0' x1' && ranges_intersect y0 y1 y0' y1'
 
+let envelope_add (x0, x1, y0, y1) (x0', x1', y0', y1') =
+  min x0 x0', max x1 x1', min y0 y0', max y1 y1'
 
-      (* 
-       * For there to be an intersection, both ranges need to
-       * intersect.
-       *)
-      (* x0 -> x1  *)
-      (* x0' -> x1' *)
-      
+let rec envelopes_add = function
+  | e :: [] -> e
+  | e :: es -> envelope_add e (envelopes_add es)
+  | [] -> raise (Invalid_argument "can't zero envelopes")
 
+let envelope_area (x0, x1, y0, y1) =
+  (x1 -. x0) *. (y1 -. y0)
 
+let rec envelope_of_elems = function
+  | (e, _) :: [] -> e
+  | (e, _) :: elems -> envelope_add e (envelope_of_elems elems)
+  | [] -> raise (Invalid_argument "no envelope for empty elements")
 
-    
-    let envelope_add (x0, x1, y0, y1) (x0', x1', y0', y1') =
-      min x0 x0', max x1 x1', min y0 y0', max y1 y1'
+let rec envelope_of_nodes = function
+  | n :: [] -> envelope_of_node n
+  | n :: ns -> envelope_add (envelope_of_node n) (envelope_of_nodes ns)
+  | [] -> raise (Invalid_argument "got empty node list")
 
-    let envelope_area (x0, x1, y0, y1) =
-      (x1 -. x0) *. (y1 -. y0)
+let enlargement_needed e e' =
+  envelope_area (envelope_add e e') -. envelope_area e
 
-    let rec envelope_of_items = function
-      | x :: [] -> B.to_envelope x
-      | x :: xs -> envelope_add (B.to_envelope x) (envelope_of_items xs)
-      | [] -> raise (Invalid_argument "got empty item list")
+(** Stratify nodes by area enlargement. *)
+let rec stratify_nodes_by_enlargement e = function
+  | (Node (e', _)) as n :: [] -> n, [], enlargement_needed e e'
+  | (Node (e', _)) as n :: ns ->
+      let enlargement = enlargement_needed e e' in
+      let (min, maxs, enlargement') = stratify_nodes_by_enlargement e ns in
+      if enlargement < enlargement' then
+        n, min :: maxs, enlargement
+      else
+        min, n :: maxs, enlargement'
+  | _ -> raise (Invalid_argument "can't find enlargement for non-nodes")
 
-    let rec envelope_of_nodes = function
-      | n :: [] -> envelope_of_node n
-      | n :: ns -> envelope_add (envelope_of_node n) (envelope_of_nodes ns)
-      | [] -> raise (Invalid_argument "got empty item list")
+(* now do the same, but allow for splits. node splitting can be
+ * arbitrary. *)
 
-    let enlargement_needed e e' =
-      envelope_area (envelope_add e e') -. envelope_area e
+let split_nodes ns =
+  (* My super awesome node splitting algorithm. *)
+  List.partition (fun _ -> Random.bool ()) ns
 
-    (** Stratify nodes by area enlargement. *)
-    let rec stratify_nodes e = function
-      | (Node (e', _)) as n :: [] -> n, [], enlargement_needed e e'
-      | (Node (e', _)) as n :: ns ->
-          let enlargement = enlargement_needed e e' in
-          let (min, maxs, enlargement') = stratify_nodes e ns in
-          if enlargement < enlargement' then
-            n, min :: maxs, enlargement
-          else
-            min, n :: maxs, enlargement'
-      | _ -> raise (Invalid_argument "can't find enlargement for non-nodes")
+let rec insert' elem e = function
+  | Node (e', ns) -> begin
+      let min, maxs, _ = stratify_nodes_by_enlargement e ns in
+      match insert' elem e min with
+        | min', Empty -> Node (envelope_add e e', min' :: maxs), Empty
+        | min', min'' when (List.length maxs + 2) < max_node_load ->
+            let e'' = envelopes_add [e;
+                                     envelope_of_node min';
+                                     envelope_of_node min''] in
+            Node (e'', min' :: min' :: maxs), Empty
+        | min', min'' ->
+            let a, b = split_nodes (min' :: min' :: maxs) in
+            Node (envelope_of_nodes a, a), Node (envelope_of_nodes b, b)
+    end
+  | Leaf (e', elems) ->
+      let elems' = (e, elem) :: elems in
+      if List.length elems >= max_node_load then
+        let a, b = split_nodes elems' in
+        Leaf (envelope_of_elems a, a), Leaf (envelope_of_elems b, b)
+      else
+        Leaf (envelope_add e' e , elems'), Empty
+  | Empty ->
+      Leaf (e, [e, elem]), Empty
 
-    (* now do the same, but allow for splits. node splitting can be
-     * arbitrary. *)
+let insert t elem envelope =
+  match insert' elem envelope t with
+    | a, Empty -> a
+    | a, b ->  (* Root split. *)
+        let nodes = [a; b] in
+        Node (envelope_of_nodes nodes, nodes)
 
-    let split_nodes ns =
-      (* My super awesome node splitting algorithm. *)
-      List.partition (fun _ -> Random.bool ()) ns
+let empty = Empty
 
-    let rec insert' item e = function
-      | Node (e', ns) -> begin
-          let min, maxs, _ = stratify_nodes e ns in
-          match insert' item e min with
-            | min', Empty -> Node (envelope_add e e', min' :: maxs), Empty
-            | min', min'' when (List.length maxs + 2) < max_node_load ->
-                let envelope' =
-                  envelope_add
-                    (envelope_add e (envelope_of_node min'))
-                    (envelope_of_node min'') in
-                Node (envelope', min' :: min' :: maxs), Empty
-            | min', min'' ->
-                let a, b = split_nodes (min' :: min' :: maxs) in
-                Node (envelope_of_nodes a, a), Node (envelope_of_nodes b, b)
-        end
-      | Leaf (e', items) ->
-          let items' = item :: items in
-          if List.length items >= max_node_load then
-            let a, b = split_nodes items' in
-            Leaf (envelope_of_items a, a), Leaf (envelope_of_items b, b)
-          else
-            Leaf (envelope_add e' e , items'), Empty
-      | Empty ->
-          Leaf (e, [item]), Empty
+let rec find t e =
+  match t with
+    | Node (e, ns) ->
+        let intersecting =
+          List.filter (fun n -> envelope_intersects (envelope_of_node n) e) ns in
+        List.concat (List.map (fun n -> find n e) intersecting)
+    | Leaf (e', elems) when envelope_intersects e e' ->
+        List.filter (fun (e', _) -> envelope_intersects e e') elems
+    | _ -> []
 
-    let insert item e t =
-      match insert' item e t with
-        | a, Empty -> a
-        | a, b ->
-            let nodes = [a; b] in
-            Node (envelope_of_nodes nodes, nodes)
+(* module type BoundableType = *)
+(*   sig *)
+(*     type t *)
+(*     val to_envelope : t -> float * float * float * float *)
+(*   end *)
 
-    let empty = Empty
-    let add t item =
-      let e = B.to_envelope item in
-      insert item e t
+(* module type R = *)
+(*   sig *)
+(*     type elem *)
+(*     type t *)
+(*     val empty : t *)
+(*     val add : t -> elem -> t *)
+(*     val find : t -> (float * float * float * float) -> elem list *)
+(*   end *)
 
-    let rec find t e =
-      match t with
-        | Node (e, ns) when 
-        | Leaf (_, t::_) -> Some t
-        | _ -> None
-  end
+(* module Make(B: BoundableType): (R with type elem = B.t) = *)
+(*   struct *)
+(*   end *)
