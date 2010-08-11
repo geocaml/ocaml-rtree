@@ -11,6 +11,6 @@ ANNOTATE=yes
 
 INCDIRS=../lib
 LIBS=rtree
-PACKS=oUnit
+PACKS=oUnit extlib
 
 -include $(OCAMLMAKEFILE)

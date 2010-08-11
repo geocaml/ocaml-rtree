@@ -1,3 +1,10 @@
+type envelope = float * float * float * float
+type 'a t
+
+val empty : 'a t
+val insert : 'a t -> 'a -> envelope -> 'a t
+val find : 'a t -> envelope -> 'a list
+val size : 'a t -> int
 
 (* module type BoundableType = *)
 (*   sig *)
