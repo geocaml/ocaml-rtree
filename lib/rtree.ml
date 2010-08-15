@@ -1,5 +1,6 @@
 type envelope = float * float * float * float
 
+type 'a bounded = envelope * 'a
 
 type 'a t
   = Node of envelope * 'a t list
@@ -57,7 +58,7 @@ let rec partition_node_by_min_enlargement e = function
         min, n :: maxs, enlargement'
   | _ -> raise (Invalid_argument "invalid node for partitioning")
 
-let pairs_of_list xs =  (* computes the cross product *)
+let pairs_of_list xs =  (* (cross product) *)
   List.concat (List.map (fun x -> List.map (fun y -> (x, y)) xs) xs)
 
 (* This is Guttman's quadradic splitting algorithm. *)
@@ -99,7 +100,9 @@ let split_nodes ns =
     | rest -> begin
         let (e, _) as n = split_pick_next xs_envelope ys_envelope rest in
         let rest' = List.filter ((!=) n) rest in
-        if (enlargement_needed e xs_envelope) < (enlargement_needed e ys_envelope) then
+        let enlargement_x = enlargement_needed e xs_envelope in
+        let enlargement_y = enlargement_needed e ys_envelope in
+        if enlargement_x < enlargement_y then
           partition (n :: xs) (envelope_add xs_envelope e) ys ys_envelope rest'
         else
           partition xs xs_envelope (n :: ys) (envelope_add ys_envelope e) rest'
@@ -149,7 +152,8 @@ let rec find t e =
   match t with
     | Node (_, ns) ->
         let intersecting =
-          List.filter (fun n -> envelope_intersects (envelope_of_node n) e) ns in
+          List.filter
+            (fun n -> envelope_intersects (envelope_of_node n) e) ns in
         List.concat (List.map (fun n -> find n e) intersecting)
     | Leaf (e', elems) when envelope_intersects e e' ->
         let intersecting =
@@ -158,12 +162,12 @@ let rec find t e =
     | _ -> []
 
 let rec size = function
- | Empty -> 0
- | Leaf (_, elems) ->
-     List.length elems
- | Node (_, ns) ->
-     let sizes = List.map size ns in
-     List.fold_left (+) 0 sizes
+  | Empty -> 0
+  | Leaf (_, elems) ->
+      List.length elems
+  | Node (_, ns) ->
+      let sizes = List.map size ns in
+      List.fold_left (+) 0 sizes
 
 (* module type BoundableType = *)
 (*   sig *)
