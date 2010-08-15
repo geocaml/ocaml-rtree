@@ -11,3 +11,4 @@
 *.opt
 *.a
 *.cmxa
+lib_test/run_test
