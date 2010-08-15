@@ -31,7 +31,7 @@ let assert_meets_bounds r e elems =
 let test_init _ =
   let elems = make_random_envelopes 100 in
   let r =
-    List.fold_left
+    (Printexc.catch List.fold_left)
       (fun r (i, envelope) -> Rtree.insert r i envelope) Rtree.empty elems in
 
   List.iter (assert_can_find r) elems;

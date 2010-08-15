@@ -12,5 +12,6 @@ ANNOTATE=yes
 INCDIRS=../lib
 LIBS=rtree
 PACKS=oUnit extlib
+OCAMLFLAGS="-g"
 
 -include $(OCAMLMAKEFILE)

@@ -1,62 +1,55 @@
-type envelope = float * float * float * float
+open Printf                             (*XXX*)
 
-type 'a bounded = envelope * 'a
+(* *)
+(* module Envelope = *)
+(*   struct *)
+(*     type t = float * float * float * float *)
 
-type 'a t
-  = Node of envelope * 'a t list
-  | Leaf of envelope * (envelope * 'a) list
+(*     let empty = 0., 0., 0., 0. *)
+    
+(*     let ranges_intersect a b a' b' = a' <= b && a <= b' *)
+     
+(*     let intersects (x0, x1, y0, y1) (x0', x1', y0', y1') = *)
+(*       (\* For two envelopes to intersect, both of their ranges do. *\) *)
+(*       ranges_intersect x0 x1 x0' x1' && ranges_intersect y0 y1 y0' y1' *)
+     
+(*     let add (x0, x1, y0, y1) (x0', x1', y0', y1') = *)
+(*       min x0 x0', max x1 x1', min y0 y0', max y1 y1' *)
+     
+(*     let rec add_many = function *)
+(*       | e :: [] -> e *)
+(*       | e :: es -> add e (add_many es) *)
+(*       | [] -> raise (Invalid_argument "can't zero envelopes") *)
+     
+(*     let area (x0, x1, y0, y1) = *)
+(*       (x1 -. x0) *. (y1 -. y0) *)
+(*   end *)
+
+type 'a t =
+    Node of (Envelope.t * 'a t) list
+  | Leaf of (Envelope.t * 'a) list
   | Empty
 
-let envelope_of_node = function
-  | Node (e, _) | Leaf (e, _) -> e
-  | Empty -> raise (Invalid_argument "empty nodes have no envelopes")
-
-let unpack_node n = envelope_of_node n, n
-let repack_node (_, n) = n
-
-(* XXX!  apply science! *)
 let max_node_load = 8
 
-let ranges_intersect a b a' b' = a' <= b && a <= b'
-
-let envelope_intersects (x0, x1, y0, y1) (x0', x1', y0', y1') =
-  (* For two envelopes to intersect, both of their ranges do. *)
-  ranges_intersect x0 x1 x0' x1' && ranges_intersect y0 y1 y0' y1'
-
-let envelope_add (x0, x1, y0, y1) (x0', x1', y0', y1') =
-  min x0 x0', max x1 x1', min y0 y0', max y1 y1'
-
-let rec envelopes_add = function
-  | e :: [] -> e
-  | e :: es -> envelope_add e (envelopes_add es)
-  | [] -> raise (Invalid_argument "can't zero envelopes")
-
-let envelope_area (x0, x1, y0, y1) =
-  (x1 -. x0) *. (y1 -. y0)
-
-let rec envelope_of_elems = function
-  | (e, _) :: [] -> e
-  | (e, _) :: elems -> envelope_add e (envelope_of_elems elems)
-  | [] -> raise (Invalid_argument "no envelope for empty elements")
-
-let rec envelope_of_nodes = function
-  | n :: [] -> envelope_of_node n
-  | n :: ns -> envelope_add (envelope_of_node n) (envelope_of_nodes ns)
-  | [] -> raise (Invalid_argument "got empty node list")
+let empty = Empty
+let empty_node = (Envelope.empty, Empty)
 
 let enlargement_needed e e' =
-  envelope_area (envelope_add e e') -. envelope_area e
+  Envelope.area (Envelope.add e e') -. Envelope.area e
 
-let rec partition_node_by_min_enlargement e = function
-  | (Node (e', _) | Leaf (e', _)) as n :: [] -> n, [], enlargement_needed e e'
-  | (Node (e', _) | Leaf (e', _)) as n :: ns ->
+let rec partition_by_min_enlargement e = function
+  | (e', _) as n :: [] ->
+      n, [], enlargement_needed e e'
+  | (e', _) as n :: ns ->
       let enlargement = enlargement_needed e e' in
-      let (min, maxs, enlargement') = partition_node_by_min_enlargement e ns in
+      let min, maxs, enlargement' = partition_by_min_enlargement e ns in
       if enlargement < enlargement' then
         n, min :: maxs, enlargement
       else
         min, n :: maxs, enlargement'
-  | _ -> raise (Invalid_argument "invalid node for partitioning")
+  | [] ->
+      raise (Invalid_argument "cannot partition an empty node")
 
 let pairs_of_list xs =  (* (cross product) *)
   List.concat (List.map (fun x -> List.map (fun y -> (x, y)) xs) xs)
@@ -65,8 +58,8 @@ let pairs_of_list xs =  (* (cross product) *)
 let split_pick_seeds ns =
   let pairs = pairs_of_list ns in
   let cost (e0, _) (e1, _) =
-    (envelope_area (envelope_add e0 e1)) -.
-    (envelope_area e0) -. (envelope_area e1) in
+    (Envelope.area (Envelope.add e0 e1)) -.
+    (Envelope.area e0) -. (Envelope.area e1) in
   let rec max_cost = function
     | (n, n') :: [] -> cost n n', (n, n')
     | (n, n') as pair :: ns ->
@@ -103,87 +96,65 @@ let split_nodes ns =
         let enlargement_x = enlargement_needed e xs_envelope in
         let enlargement_y = enlargement_needed e ys_envelope in
         if enlargement_x < enlargement_y then
-          partition (n :: xs) (envelope_add xs_envelope e) ys ys_envelope rest'
+          partition (n :: xs) (Envelope.add xs_envelope e) ys ys_envelope rest'
         else
-          partition xs xs_envelope (n :: ys) (envelope_add ys_envelope e) rest'
+          partition xs xs_envelope (n :: ys) (Envelope.add ys_envelope e) rest'
       end in
   let (((e0, _) as n0), ((e1, _) as n1)) = split_pick_seeds ns in
   partition [n0] e0 [n1] e1 (List.filter (fun n -> n != n0 && n != n1) ns)
 
+let envelope_of_nodes ns = Envelope.add_many (List.map (fun (e, _) -> e) ns)
+
 let rec insert' elem e = function
-  | Node (e', ns) -> begin
-      let min, maxs, _ = partition_node_by_min_enlargement e ns in
+  | Node ns -> begin
+      let (_, min), maxs, _ = partition_by_min_enlargement e ns in
       match insert' elem e min with
-        | min', Empty ->
-            Node (envelope_add (envelope_of_node min') e', min' :: maxs), Empty
+        | min', (_, Empty) ->
+            let ns' = min' :: maxs in
+            let e' = envelope_of_nodes ns' in
+            (e', Node ns'), empty_node
         | min', min'' when (List.length maxs + 2) < max_node_load ->
-            let e'' =
-              envelopes_add [e; envelope_of_node min'; envelope_of_node min'']
-            in Node (e'', min' :: min'' :: maxs), Empty
+            let ns' = min' :: min'' :: maxs in
+            let e' = envelope_of_nodes ns' in
+            (e', Node ns'), empty_node
         | min', min'' ->
-            let nodes = min' :: min'' :: maxs in
-            let unpacked = List.map unpack_node nodes in
-            (* Yuck. Fix. *)
-            let a, b = split_nodes unpacked in
-            let a' = List.map repack_node a in
-            let b' = List.map repack_node b in
-            Node (envelope_of_nodes a', a'), Node (envelope_of_nodes b', b')
+            (* TODO: just reuse the envelopes computed in ``split_nodes'' *)
+            let a, b = split_nodes (min' :: min'' :: maxs) in
+            (envelope_of_nodes a, Node a), (envelope_of_nodes b, Node b)
     end
-  | Leaf (e', elems) ->
-      let elems' = (e, elem) :: elems in
-      if List.length elems >= max_node_load then
-        let a, b = split_nodes elems' in
-        Leaf (envelope_of_elems a, a), Leaf (envelope_of_elems b, b)
+  | Leaf es ->
+      let es' = (e, elem) :: es in
+      if List.length es' > max_node_load then
+        let a, b = split_nodes es' in
+        (envelope_of_nodes a, Leaf a), (envelope_of_nodes b, Leaf b)
       else
-        Leaf (envelope_add e' e , elems'), Empty
+        (envelope_of_nodes es, Leaf es'), empty_node
   | Empty ->
-      Leaf (e, [e, elem]), Empty
+      (e, Leaf [e, elem]), empty_node
 
-let insert t elem envelope =
-  match insert' elem envelope t with
-    | a, Empty -> a
-    | a, b ->  (* Root split. *)
-        let nodes = [a; b] in
-        Node (envelope_of_nodes nodes, nodes)
+let insert t elem e =
+  match insert' elem e t with
+    | (_, a), (_, Empty) -> a
+    | a, b -> Node [a; b]  (* root split *)
 
-let empty = Empty
+let filter_intersecting e =
+  List.filter (fun (e', _) -> Envelope.intersects e e')
 
 let rec find t e =
   match t with
-    | Node (_, ns) ->
-        let intersecting =
-          List.filter
-            (fun n -> envelope_intersects (envelope_of_node n) e) ns in
-        List.concat (List.map (fun n -> find n e) intersecting)
-    | Leaf (e', elems) when envelope_intersects e e' ->
-        let intersecting =
-          List.filter (fun (e'', _) -> envelope_intersects e e'') elems in
-        List.map (fun (_, elem) -> elem) intersecting
-    | _ -> []
+    | Node ns ->
+        let intersecting = filter_intersecting e ns in
+        let found = List.map (fun (e, n) -> find n e) intersecting in
+        List.concat found
+    | Leaf es -> List.map snd (filter_intersecting e es)
+    | Empty -> []
 
 let rec size = function
-  | Empty -> 0
-  | Leaf (_, elems) ->
-      List.length elems
-  | Node (_, ns) ->
-      let sizes = List.map size ns in
-      List.fold_left (+) 0 sizes
-
-(* module type BoundableType = *)
-(*   sig *)
-(*     type t *)
-(*     val to_envelope : t -> float * float * float * float *)
-(*   end *)
-
-(* module type R = *)
-(*   sig *)
-(*     type elem *)
-(*     type t *)
-(*     val empty : t *)
-(*     val add : t -> elem -> t *)
-(*     val find : t -> (float * float * float * float) -> elem list *)
-(*   end *)
-
-(* module Make(B: BoundableType): (R with type elem = B.t) = *)
-(*   struct *)
-(*   end *)
+  | Node ns ->
+      let sub_sizes = List.map (fun (_, n) -> size n) ns in
+      List.fold_left (+) 0 sub_sizes
+  | Leaf es ->
+      List.length es
+  | Empty ->
+      0
+  
