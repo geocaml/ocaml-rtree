@@ -11,6 +11,7 @@ module type R =
     val empty : t
     val insert : t -> elem -> t
     val find : t -> (float * float * float * float) -> elem list
+    val size : t -> int
   end
 
 module Make (B : BoundableType) : R with type elem = B.t

@@ -11,6 +11,7 @@ module type R =
     val empty : t
     val insert : t -> elem -> t
     val find : t -> (float * float * float * float) -> elem list
+    val size : t -> int
   end
 
 (* Functor interface. *)
@@ -22,4 +23,5 @@ module Make(B: BoundableType) =
 
     let insert t elem = Rtree.insert t elem (B.to_envelope elem)
     let find = Rtree.find
+    let size = Rtree.size
   end
