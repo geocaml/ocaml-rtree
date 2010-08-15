@@ -1,30 +1,3 @@
-open Printf                             (*XXX*)
-
-(* *)
-(* module Envelope = *)
-(*   struct *)
-(*     type t = float * float * float * float *)
-
-(*     let empty = 0., 0., 0., 0. *)
-    
-(*     let ranges_intersect a b a' b' = a' <= b && a <= b' *)
-     
-(*     let intersects (x0, x1, y0, y1) (x0', x1', y0', y1') = *)
-(*       (\* For two envelopes to intersect, both of their ranges do. *\) *)
-(*       ranges_intersect x0 x1 x0' x1' && ranges_intersect y0 y1 y0' y1' *)
-     
-(*     let add (x0, x1, y0, y1) (x0', x1', y0', y1') = *)
-(*       min x0 x0', max x1 x1', min y0 y0', max y1 y1' *)
-     
-(*     let rec add_many = function *)
-(*       | e :: [] -> e *)
-(*       | e :: es -> add e (add_many es) *)
-(*       | [] -> raise (Invalid_argument "can't zero envelopes") *)
-     
-(*     let area (x0, x1, y0, y1) = *)
-(*       (x1 -. x0) *. (y1 -. y0) *)
-(*   end *)
-
 type 'a t =
     Node of (Envelope.t * 'a t) list
   | Leaf of (Envelope.t * 'a) list
@@ -89,7 +62,7 @@ let split_pick_next e0 e1 ns =
 
 let split_nodes ns =
   let rec partition xs xs_envelope ys ys_envelope = function
-    | [] -> xs, ys
+    | [] -> (xs, xs_envelope), (ys, ys_envelope)
     | rest -> begin
         let (e, _) as n = split_pick_next xs_envelope ys_envelope rest in
         let rest' = List.filter ((!=) n) rest in
@@ -118,17 +91,17 @@ let rec insert' elem e = function
             let e' = envelope_of_nodes ns' in
             (e', Node ns'), empty_node
         | min', min'' ->
-            (* TODO: just reuse the envelopes computed in ``split_nodes'' *)
-            let a, b = split_nodes (min' :: min'' :: maxs) in
-            (envelope_of_nodes a, Node a), (envelope_of_nodes b, Node b)
+            let (a, envelope_a), (b, envelope_b) =
+              split_nodes (min' :: min'' :: maxs) in
+            (envelope_a, Node a), (envelope_b, Node b)
     end
   | Leaf es ->
       let es' = (e, elem) :: es in
       if List.length es' > max_node_load then
-        let a, b = split_nodes es' in
-        (envelope_of_nodes a, Leaf a), (envelope_of_nodes b, Leaf b)
+        let (a, envelope_a), (b, envelope_b) = split_nodes es' in
+        (envelope_a, Leaf a), (envelope_b, Leaf b)
       else
-        (envelope_of_nodes es, Leaf es'), empty_node
+        (envelope_of_nodes es', Leaf es'), empty_node
   | Empty ->
       (e, Leaf [e, elem]), empty_node
 
@@ -144,7 +117,7 @@ let rec find t e =
   match t with
     | Node ns ->
         let intersecting = filter_intersecting e ns in
-        let found = List.map (fun (e, n) -> find n e) intersecting in
+        let found = List.map (fun (_, n) -> find n e) intersecting in
         List.concat found
     | Leaf es -> List.map snd (filter_intersecting e es)
     | Empty -> []
