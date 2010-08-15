@@ -1,7 +1,7 @@
 module type BoundableType =
   sig
     type t
-    val to_envelope : t -> float * float * float * float
+    val to_envelope : t -> Envelope.t
   end
 
 module type R =
@@ -10,7 +10,7 @@ module type R =
     type t
     val empty : t
     val insert : t -> elem -> t
-    val find : t -> (float * float * float * float) -> elem list
+    val find : t -> Envelope.t -> elem list
     val size : t -> int
   end
 
