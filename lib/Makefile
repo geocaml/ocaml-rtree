@@ -1,5 +1,5 @@
 ANNOTATE= yes
-SOURCES= envelope.ml rtree.mli rtree.ml
+SOURCES= envelope.ml rtree.mli rtree.ml rtree_f.mli rtree_f.ml
 RESULT= rtree
 LIBINSTALL_FILES= META rtree.cma rtree.cmxa rtree.a rtree.cmi
 # LIB_PACK_NAME= rtree

@@ -14,7 +14,6 @@ let rec make_random_envelopes = function
 
 let assert_can_find r (i, e) =
   let found = Rtree.find r e in
-  let (a, b, c, d) = e in
   assert (List.exists ((=) i) found)
 
 let assert_meets_bounds r e elems =
@@ -33,8 +32,26 @@ let test_init _ =
   List.iter (assert_can_find r) elems;
   List.iter (fun (_, e) -> assert_meets_bounds r e elems) elems
 
+let test_functor _ =
+  let elems = make_random_envelopes 100 in
+  let module R = Rtree_f.Make(
+    struct
+      type t = int
+      let to_envelope i = List.assoc i elems
+    end) in
+
+  let r =
+    List.fold_left
+      (fun r (i, envelope) -> R.insert r i) R.empty elems in
+
+  List.iter begin fun (i, e) ->
+    let found = R.find r e in
+    assert (List.exists ((=) i) found)
+  end elems
+
 let suite = "Rtree" >::: [
-  "init" >:: test_init;
+  "init"    >:: test_init;
+  "functor" >:: test_functor;
 ]
 
 let _ = run_test_tt_main suite
