@@ -130,4 +130,3 @@ let rec size = function
       List.length es
   | Empty ->
       0
-  

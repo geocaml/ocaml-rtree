@@ -1,0 +1,32 @@
+OASISFormat: 0.2
+Name:        rtree
+Version:     1.0
+Authors:     marius a. eriksen (marius@monkey.org)
+License:     BSD3
+Plugins:     META (0.2), DevFiles (0.2), StdFiles (0.2)
+Synopsis:    An R-tree implementation in OCaml
+BuildTools:  ocamlbuild
+Description:
+  This library implements a simple R-tree library according to
+  Guttman's original paper. Currently node splitting is done through
+  the quadratic algorithm in that paper.
+  .
+  The interface (and implementation) is purely functional.
+  .
+  A functor interface is also provided for providing implicit bounds
+  for values.
+
+Library rtree
+  Path:       src
+  Modules:    Rtree, Rtree_f
+
+Executable test
+  Install: false
+  Path: test
+  MainIs: basic.ml
+  BuildDepends: oUnit
+
+Test main
+  Type: custom (0.2)
+  Command: $test
+  WorkingDirectory: test 

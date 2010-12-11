@@ -1,35 +1,38 @@
+# OASIS_START
+# DO NOT EDIT (digest: bc1e05bfc8b39b664f29dae8dbd3ebbb)
 
-FILES= \
-  rtree.cma rtree.cmxa rtree.a \
-  rtree.mli rtree.cmi \
-  rtree_f.cma rtree_f.cmxa rtree_f.a \
-  rtree_f.mli rtree_f.cmi \
+SETUP = ocaml setup.ml
 
-BFILES=$(addprefix _build/lib/,$(FILES))
+build: setup.data
+	$(SETUP) -build $(BUILDFLAGS)
 
-.PHONY: all
-all:
-	ocamlbuild -I lib rtree.cma rtree.cmxa rtree_f.cma rtree_f.cmxa
+doc: setup.data build
+	$(SETUP) -doc $(DOCFLAGS)
 
-test:
-	ocamlbuild -I lib lib_test/basic.native
-	./basic.native; echo
+test: setup.data build
+	$(SETUP) -test $(TESTFLAGS)
 
-.PHONY: all
-doc:
-	ocamlbuild -no-links lib/doc.docdir/index.html
+all: 
+	$(SETUP) -all $(ALLFLAGS)
 
-.PHONY: install
-install:
-	ocamlfind install rtree lib/META $(BFILES)
+install: setup.data
+	$(SETUP) -install $(INSTALLFLAGS)
 
-.PHONY: uninstall
-uninstall:
-	ocamlfind remove rtree
+uninstall: setup.data
+	$(SETUP) -uninstall $(UNINSTALLFLAGS)
 
-.PHONY: reinstall
-reinstall: all uninstall install
+reinstall: setup.data
+	$(SETUP) -reinstall $(REINSTALLFLAGS)
 
-.PHONY: clean
-clean:
-	ocamlbuild -clean
+clean: 
+	$(SETUP) -clean $(CLEANFLAGS)
+
+distclean: 
+	$(SETUP) -distclean $(DISTCLEANFLAGS)
+
+setup.data:
+	$(SETUP) -configure $(CONFIGUREFLAGS)
+
+.PHONY: build doc test all install uninstall reinstall clean distclean configure
+
+# OASIS_STOP

@@ -1,0 +1,8 @@
+# OASIS_START
+# DO NOT EDIT (digest: 4e42f143b7b3d4f9d4607c13ed53dacf)
+# Executable test
+"test/basic.byte": pkg_oUnit
+<test/*.ml{,i}>: pkg_oUnit
+# Library rtree
+"src": include
+# OASIS_STOP
