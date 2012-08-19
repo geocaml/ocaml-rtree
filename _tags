@@ -1,8 +1,23 @@
 # OASIS_START
-# DO NOT EDIT (digest: 4e42f143b7b3d4f9d4607c13ed53dacf)
-# Executable test
-"test/basic.byte": pkg_oUnit
-<test/*.ml{,i}>: pkg_oUnit
+# DO NOT EDIT (digest: b49de2e6ce9c5af62b115134ac19d8ef)
+# Ignore VCS directories, you can use the same kind of rule outside 
+# OASIS_START/STOP if you want to exclude directories that contains 
+# useless stuff for the build process
+<**/.svn>: -traverse
+<**/.svn>: not_hygienic
+".bzr": -traverse
+".bzr": not_hygienic
+".hg": -traverse
+".hg": not_hygienic
+".git": -traverse
+".git": not_hygienic
+"_darcs": -traverse
+"_darcs": not_hygienic
 # Library rtree
-"src": include
+"src/rtree.cmxs": use_rtree
+# Executable test
+"test/basic.byte": use_rtree
+"test/basic.byte": pkg_oUnit
+<test/*.ml{,i}>: use_rtree
+<test/*.ml{,i}>: pkg_oUnit
 # OASIS_STOP
