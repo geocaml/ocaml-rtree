@@ -37,10 +37,10 @@ let bench_find i =
 let suite =
   Test.make_grouped ~name:"rtree" [
     Test.make_indexed ~name:"insert" ~fmt:"%s %7d"
-      ~args:[ 10; 30; 100; 300; 1_000; 3_000; 10000 ]
+      ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
       bench_insert;
     Test.make_indexed ~name:"find" ~fmt:"%s %7d"
-      ~args:[ 10; 30; 100; 300; 1_000; 3_000; 10000 ]
+      ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
       bench_find;
   ]
 

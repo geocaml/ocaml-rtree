@@ -1,5 +1,7 @@
 (lang dune 3.6)
 
+(using mdx 0.3)
+
 (formatting disabled)
 (generate_opam_files true)
 (source (github geocaml/ocaml-rtree))
@@ -12,4 +14,5 @@
  (synopsis "A pure OCaml R-Tree implementation")
  (depends
   (bechamel :with-test)
-  (ounit2 :with-test)))
+  (ounit2 :with-test)
+  (mdx :with-test)))
