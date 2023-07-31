@@ -5,6 +5,13 @@ let () = Random.init 42
 module Point = struct
   type t = { x : float; y : float }
 
+  let t =
+    let open Repr in
+    record "t" (fun x y -> { x; y })
+    |+ field "x" float (fun t -> t.x)
+    |+ field "y" float (fun t -> t.y)
+    |> sealr
+
   type envelope = Rtree.Rectangle.t
 
   let envelope t : Rtree.Rectangle.t = t.x, t.y, t.x, t.y

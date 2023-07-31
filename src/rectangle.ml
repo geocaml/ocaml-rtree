@@ -1,5 +1,7 @@
 type t = float * float * float * float
 
+let t = Repr.(quad float float float float)
+
 let make ~x0 ~y0 ~x1 ~y1 = (x0, x1, y0, y1)
 
 let ranges_intersect a b a' b' = a' <= b && a <= b'
