@@ -12,4 +12,4 @@
  (synopsis "A pure OCaml R-Tree implementation")
  (depends
   (bechamel :with-test)
-  (ounit :with-test)))
+  (ounit2 :with-test)))
