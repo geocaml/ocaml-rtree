@@ -1,3 +1,4 @@
-(test
- (name basic)
+(tests
+ (names basic persist)
+ (deps r.idx)
  (libraries ounit2 rtree))
