@@ -4,14 +4,19 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
   module Envelope = E
   module Value = V
 
-  type t =
-      Node of (E.t * t) list
+  type tree =
+      Node of (E.t * tree) list
     | Leaf of (E.t * V.t) list
     | Empty
 
-  let max_node_load = 8
+  type t = {
+    max_node_load : int;
+    tree : tree;
+  }
 
-  let empty = Empty
+  let empty max_node_load =
+    if max_node_load < 2 then invalid_arg "Max node load must be greater than 1";
+    { max_node_load; tree = Empty }
   let empty_node = (E.empty, Empty)
 
   let enlargement_needed e e' =
@@ -84,10 +89,10 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let envelope_of_nodes ns = E.merge_many (List.map (fun (e, _) -> e) ns)
 
-  let rec insert' elem e = function
+  let rec insert' max_node_load elem e = function
     | Node ns -> begin
         let (_, min), maxs, _ = partition_by_min_enlargement e ns in
-        match insert' elem e min with
+        match insert' max_node_load elem e min with
           | min', (_, Empty) ->
               let ns' = min' :: maxs in
               let e' = envelope_of_nodes ns' in
@@ -112,30 +117,34 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         (e, Leaf [e, elem]), empty_node
 
   let insert t elem =
-    match insert' elem (V.envelope elem) t with
-      | (_, a), (_, Empty) -> a
-      | a, b -> Node [a; b]  (* root split *)
+    match insert' t.max_node_load elem (V.envelope elem) t.tree with
+      | (_, tree), (_, Empty) -> { max_node_load = t.max_node_load; tree }
+      | a, b -> { max_node_load = t.max_node_load; tree = Node [a; b] }  (* root split *)
 
   let filter_intersecting e =
     List.filter (fun (e', _) -> E.intersects e e')
 
-  let rec find t e =
+  let rec find' t e =
     match t with
       | Node ns ->
           let intersecting = filter_intersecting e ns in
-          let found = List.map (fun (_, n) -> find n e) intersecting in
+          let found = List.map (fun (_, n) -> find' n e) intersecting in
           List.concat found
       | Leaf es -> List.map snd (filter_intersecting e es)
       | Empty -> []
 
-  let rec size = function
+  let find t e = find' t.tree e
+
+  let rec size' = function
     | Node ns ->
-        let sub_sizes = List.map (fun (_, n) -> size n) ns in
+        let sub_sizes = List.map (fun (_, n) -> size' n) ns in
         List.fold_left (+) 0 sub_sizes
     | Leaf es ->
         List.length es
     | Empty ->
         0
+
+  let size t = size' t.tree
 end
 
 module Rectangle = Rectangle

@@ -42,8 +42,9 @@ module type S = sig
   (** Values stored in the Rtree. *)
   module Value : Value with type envelope = Envelope.t
 
-  val empty : t
-  (** The empty tree. *)
+  val empty : int -> t
+  (** The empty tree configured with a maximum load size. This
+      is the number of children allowed at a level. *)
 
   val insert : t -> Value.t -> t
   (** Insert a new element into the tree *)
@@ -65,5 +66,9 @@ module type Intf = sig
 
   module Make : Maker
 
-  module Rectangle : Envelope with type t = float * float * float * float
+  module Rectangle : sig
+    include Envelope with type t = float * float * float * float
+
+    val make : x0:float -> y0:float -> x1:float -> y1:float -> t
+  end
 end
