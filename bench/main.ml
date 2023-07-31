@@ -21,14 +21,14 @@ let random_points ?(min=(-180.)) ?(max=180.) num =
 let bench_insert i =
   let points = random_points i in
   let run () =
-    List.fold_left (fun r p -> Rtree.insert r p) Rtree.empty points
+    List.fold_left (fun r p -> Rtree.insert r p) (Rtree.empty 8) points
   in
   Staged.stage run
 
 let bench_find i =
   let points = random_points i in
   let p = List.nth points (i / 2) in
-  let index = List.fold_left (fun r p -> Rtree.insert r p) Rtree.empty points in
+  let index = List.fold_left (fun r p -> Rtree.insert r p) (Rtree.empty 8) points in
   let run () =
     Rtree.find index (Point.envelope p)
   in
