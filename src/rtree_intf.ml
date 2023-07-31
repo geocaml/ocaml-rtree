@@ -61,6 +61,8 @@ module type Maker =
   S with module Envelope = Envelope and module Value = Value
 
 module type Intf = sig
+  module type Value = Value
+  module type Envelope = Envelope
   module type S = S
   module type Maker = Maker
 
