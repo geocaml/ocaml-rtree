@@ -1,5 +1,0 @@
-(* OASIS_START *)
-(* DO NOT EDIT (digest: 8a0a019df47aa2764cb4432a6fa751e9) *)
-Authors of rtree
-marius a. eriksen (marius@monkey.org)
-(* OASIS_STOP *)

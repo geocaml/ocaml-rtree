@@ -1,4 +1,3 @@
-open Printf
 open OUnit
 
 let make_random_envelope () =
@@ -42,7 +41,7 @@ let test_functor _ =
 
   let r =
     List.fold_left
-      (fun r (i, envelope) -> R.insert r i) R.empty elems in
+      (fun r (i, _envelope) -> R.insert r i) R.empty elems in
 
   List.iter begin fun (i, e) ->
     let found = R.find r e in

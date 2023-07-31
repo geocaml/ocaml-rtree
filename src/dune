@@ -1,0 +1,4 @@
+(library
+ (name rtree_f)
+ (public_name rtree)
+ (wrapped false))

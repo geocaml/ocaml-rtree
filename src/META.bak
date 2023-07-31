@@ -1,9 +1,0 @@
-# OASIS_START
-# DO NOT EDIT (digest: db38cbea524659b516b5ddab948c0fae)
-version = "1.0"
-description = "An r-tree implementation in OCaml"
-archive(byte) = "rtree.cma"
-archive(native) = "rtree.cmxa"
-exists_if = "rtree.cma"
-# OASIS_STOP
-
