@@ -8,6 +8,7 @@ homepage: "https://github.com/geocaml/ocaml-rtree"
 bug-reports: "https://github.com/geocaml/ocaml-rtree/issues"
 depends: [
   "dune" {>= "3.6"}
+  "bechamel" {with-test}
   "ounit" {with-test}
   "odoc" {with-doc}
 ]

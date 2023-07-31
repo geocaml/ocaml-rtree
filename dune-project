@@ -11,4 +11,5 @@
  (name rtree)
  (synopsis "A pure OCaml R-Tree implementation")
  (depends
+  (bechamel :with-test)
   (ounit :with-test)))
