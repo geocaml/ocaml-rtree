@@ -20,6 +20,20 @@ let lines = [
   [|0.; 5.; 4.; 4. |]
 ]
 
+module Ic = struct
+  let with_open_bin fname fn =
+    let ic = open_in_bin fname in
+    Fun.protect ~finally:(fun () -> close_in ic) (fun () -> fn ic)
+
+  let input_all ic =
+    let lines = ref [] in
+    let rec loop () =
+      lines := input_line ic :: !lines;
+      loop ()
+    in
+    try loop () with End_of_file -> List.rev !lines |> String.concat "\n"
+end
+
 (* Code used to initial persist the index
 let initial_persist () =
   let idx = R.empty 4 in
@@ -29,8 +43,8 @@ let initial_persist () =
 *)
 
 let () =
-  In_channel.with_open_bin "./r.idx" @@ fun ic ->
-  let idx = In_channel.input_all ic |> Repr.(unstage @@ of_bin_string R.t) |> Result.get_ok in
+  Ic.with_open_bin "./r.idx" @@ fun ic ->
+  let idx = Ic.input_all ic |> Repr.(unstage @@ of_bin_string R.t) |> Result.get_ok in
   let all = R.find idx (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.) in
   let retrieved = List.for_all (fun v -> List.exists (Repr.(unstage @@ equal Line.t) v) lines) all in
   assert retrieved
