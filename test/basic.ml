@@ -96,7 +96,9 @@ let test_lines () =
   assert (List.length l1' = 1);
   assert (l1 = List.hd l1');
   let l1' = R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.) in
-  assert (List.length l1' = 2)
+  assert (List.length l1' = 2);
+  let vs = R.values index in
+  assert (List.length vs = 2)
 
 let suite = "R" >::: [
   "init"    >:: test_init;

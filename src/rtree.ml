@@ -162,6 +162,14 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         0
 
   let size t = size' t.tree
+
+  let rec values' acc = function
+    | Node lst ->
+      List.fold_left (fun a (_, v) -> values' a v) acc lst
+    | Leaf vs -> List.map snd vs
+    | Empty -> []
+
+  let values t = values' [] t.tree
 end
 
 module Rectangle = Rectangle
