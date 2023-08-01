@@ -18,6 +18,7 @@ The core library comes with an implementation of envelopes as two-dimensional re
 module Rectangle :
   sig
     type t = float * float * float * float
+    val t : t Repr.ty
     val empty : t
     val intersects : t -> t -> bool
     val merge : t -> t -> t
@@ -33,6 +34,14 @@ If you wanted to store lines in your rtree, one possible implementation might be
 ```ocaml
 module Line = struct
   type t = { p0 : float * float; p1 : float * float }
+
+  let t =
+    let open Repr in
+    record "line" (fun p0 p1 -> { p0; p1 })
+    |+ field "p0" (pair float float) (fun t -> t.p0)
+    |+ field "p1" (pair float float) (fun t -> t.p1)
+    |> sealr
+
   type envelope = Rtree.Rectangle.t
 
   let envelope { p0 = (x1, y1); p1 = (x2, y2) } =
@@ -73,3 +82,12 @@ Finding values requires you to pass in a search envelope. A list of result, perh
 [{Line.p0 = (4., 4.); p1 = (5., 5.)}; {Line.p0 = (1., 2.); p1 = (3., 3.)}]
 ```
 
+### Repr
+
+Rtree asks you to provide a runtime representation of your stored values, which allows you to persist your index easily.
+
+```ocaml
+# Format.printf "%a" (Repr.pp R.t) index;;
+{"max_node_load":8,"tree":{"Leaf":[[[4,5,4,5],{"p0":[4,4],"p1":[5,5]}],[[1,3,2,3],{"p0":[1,2],"p1":[3,3]}]]}}
+- : unit = ()
+```

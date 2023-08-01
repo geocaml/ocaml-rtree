@@ -9,10 +9,27 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Leaf of (E.t * V.t) list
     | Empty
 
+  let tree_t =
+    let open Repr in
+    mu (fun tree ->
+      variant "tree_t" (fun node leaf empty -> function Node lst -> node lst | Leaf s -> leaf s | Empty -> empty)
+      |~ case1 "Node" (list (pair E.t tree)) (fun x -> Node x)
+      |~ case1 "Leaf" (list (pair E.t V.t)) (fun x -> Leaf x)
+      |~ case0 "Empty" Empty
+      |> sealv
+    )
+
   type t = {
     max_node_load : int;
     tree : tree;
   }
+
+  let t =
+    let open Repr in
+    record "t" (fun max_node_load tree -> { max_node_load; tree })
+    |+ field "max_node_load" int (fun t -> t.max_node_load)
+    |+ field "tree" tree_t (fun t -> t.tree)
+    |> sealr
 
   let empty max_node_load =
     if max_node_load < 2 then invalid_arg "Max node load must be greater than 1";

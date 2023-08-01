@@ -2,6 +2,9 @@ module type Value = sig
   type t
   (** A type for things stored in the Rtree. *)
 
+  val t : t Repr.t
+  (** A runtime representation of values. *)
+
   type envelope
   (** A type for envelopes in the Rtree. *)
 
@@ -12,6 +15,9 @@ end
 module type Envelope = sig
   type t
   (** The type for envelopes *)
+
+  val t : t Repr.t
+  (** A runtime representation of envelopes. *)
 
   val empty : t
   (** The empty envelope. *)
@@ -35,6 +41,9 @@ end
 module type S = sig
   type t
   (** An Rtree. *)
+
+  val t : t Repr.t
+  (** A runtime representation of the rtree. *)
 
   (** Envelopes for the Rtree. *)
   module Envelope : Envelope

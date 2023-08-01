@@ -4,6 +4,7 @@ let pre_made_envelopes = ref []
 
 module V = struct
   type t = int
+  let t = Repr.int
   type envelope = Rtree.Rectangle.t
   let envelope i = List.assoc i !pre_made_envelopes
 end
@@ -46,6 +47,7 @@ let test_functor _ =
   let module R = Rtree.Make (Rtree.Rectangle)(
     struct
       type t = int
+      let t = Repr.int
       type envelope = Rtree.Rectangle.t
       let envelope i = List.assoc i elems
     end) in
@@ -63,9 +65,18 @@ type line = {
     p1 : float * float;
     p2 : float * float;
   }
+
+let lint_t =
+  let open Repr in
+  record "line" (fun p1 p2 -> { p1; p2 })
+  |+ field "p1" (pair float float) (fun t -> t.p1)
+  |+ field "p2" (pair float float) (fun t -> t.p2)
+  |> sealr
+
 let test_lines () =
   let module R = Rtree.Make (Rtree.Rectangle)(struct
     type t = line
+    let t = lint_t
     type envelope = Rtree.Rectangle.t
     let envelope { p1 = (x1, y1); p2 = (x2, y2) } =
       let x0 = Float.min x1 x2 in
