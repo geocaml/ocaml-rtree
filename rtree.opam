@@ -3,7 +3,7 @@ opam-version: "2.0"
 synopsis: "A pure OCaml R-Tree implementation"
 maintainer: ["patrick@sirref.org"]
 authors: ["Marius A. Eriksen" "Patrick Ferris"]
-license: "BSD3"
+license: "BSD-3-Clause"
 homepage: "https://github.com/geocaml/ocaml-rtree"
 bug-reports: "https://github.com/geocaml/ocaml-rtree/issues"
 depends: [

@@ -4,7 +4,7 @@
 
 (generate_opam_files true)
 (source (github geocaml/ocaml-rtree))
-(license BSD3)
+(license BSD-3-Clause)
 (authors "Marius A. Eriksen" "Patrick Ferris")
 (maintainers "patrick@sirref.org")
 

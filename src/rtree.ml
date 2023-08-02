@@ -154,13 +154,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
   let values t = values' [] t.tree
   let log_base b n = log n /. log b
 
-  let sort_by_dim entries i =
-    List.stable_sort
-      (fun v1 v2 ->
-        Float.compare
-          (E.get_dim (V.envelope v1) i)
-          (E.get_dim (V.envelope v2) i))
-      entries
+  let sort_by_dim entries i = List.stable_sort (fun v1 v2 -> E.compare_dim i (V.envelope v1) (V.envelope v2)) entries
 
   let rec fold_lefti f i accu l =
     match l with [] -> accu | a :: l -> fold_lefti f (i + 1) (f i accu a) l

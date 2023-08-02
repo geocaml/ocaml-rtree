@@ -52,8 +52,8 @@ module type Envelope = sig
   val dimensions : int
   (** The number of dimensions of this kind of envelope *)
 
-  val get_dim : t -> int -> float
-  (** [get_dim e i] gets the value for the [i]th dimension of [e].
+  val compare_dim : int -> t -> t -> int
+  (** [compare_dim i a b] compares [a] and [b] along the [i]th dimension.
 
       Raises [Invalid_arg] if [i >= dimensions]. *)
 
