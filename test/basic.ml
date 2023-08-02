@@ -100,10 +100,32 @@ let test_lines () =
   let vs = R.values index in
   assert (List.length vs = 2)
 
+let omt_loader () =
+  let module R = Rtree.Make (Rtree.Rectangle)(struct
+  type t = line
+  let t = lint_t
+  type envelope = Rtree.Rectangle.t
+  let envelope { p1 = (x1, y1); p2 = (x2, y2) } =
+    let x0 = Float.min x1 x2 in
+    let x1 = Float.max x1 x2 in
+    let y0 = Float.min y1 y2 in
+    let y1 = Float.max y1 y2 in
+    Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+  end) in
+  let lines = [
+    { p1 = (0., 0.); p2 = (1., 1.) };
+    { p1 = (1., 1.); p2 = (2., 2.) };
+    { p1 = (3., 3.); p2 = (3., 3.) };
+    { p1 = (4., 4.); p2 = (4., 4.) }
+  ] in
+  let idx = R.load ~max_node_load:2 lines in
+  print_endline (Repr.to_string R.t idx)
+
 let suite = "R" >::: [
   "init"    >:: test_init;
   "functor" >:: test_functor;
-  "lines" >:: test_lines
+  "lines" >:: test_lines;
+  "omt" >:: omt_loader
 ]
 
 let _ = run_test_tt_main suite

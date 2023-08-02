@@ -1,5 +1,12 @@
 type t = float * float * float * float
 
+let dimensions = 2
+
+let get_dim (x0, _, y0, _) = function
+  | 0 -> x0
+  | 1 -> y0
+  | n -> invalid_arg ("Only two dimensions and you accessed " ^ string_of_int n)
+
 let t = Repr.(quad float float float float)
 
 let make ~x0 ~y0 ~x1 ~y1 = (x0, x1, y0, y1)
