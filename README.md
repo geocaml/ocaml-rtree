@@ -19,7 +19,7 @@ module Rectangle :
   sig
     type t = float * float * float * float
     val dimensions : int
-    val get_dim : t -> int -> float
+    val compare_dim : int -> t -> t -> int
     val t : t Repr__Type.t
     val empty : t
     val intersects : t -> t -> bool
@@ -79,8 +79,18 @@ of folding and inserting. This uses the [OMT algorithm](https://ceur-ws.org/Vol-
 give you a more optimised rtree layout.
 
 ```ocaml
-# R.load [ Line.{ p0 = (1., 2.); p1 = (3., 3.) }; ];;
-- : R.t = <abstr>
+# let lines =
+    Line.[
+      { p0 = (0., 0.); p1 = (1., 1.) };
+      { p0 = (1., 1.); p1 = (2., 2.) };
+      { p0 = (2., 2.); p1 = (3., 3.) };
+      { p0 = (3., 3.); p1 = (4., 4.) };
+    ]
+  in
+  let idx = R.load ~max_node_load:2 lines in
+  print_endline (Repr.to_string R.t idx)
+{"max_node_load":2,"tree":{"Node":[[[0,4,0,4],{"Node":[[[0,2,0,2],{"Leaf":[[[0,1,0,1],{"p0":[0,0],"p1":[1,1]}],[[1,2,1,2],{"p0":[1,1],"p1":[2,2]}]]}],[[2,4,2,4],{"Leaf":[[[2,3,2,3],{"p0":[2,2],"p1":[3,3]}],[[3,4,3,4],{"p0":[3,3],"p1":[4,4]}]]}]]}]]}}
+- : unit = ()
 ```
 
 ### Find
