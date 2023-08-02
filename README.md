@@ -18,7 +18,9 @@ The core library comes with an implementation of envelopes as two-dimensional re
 module Rectangle :
   sig
     type t = float * float * float * float
-    val t : t Repr.ty
+    val dimensions : int
+    val get_dim : t -> int -> float
+    val t : t Repr__Type.t
     val empty : t
     val intersects : t -> t -> bool
     val merge : t -> t -> t
@@ -55,7 +57,7 @@ end
 module R = Rtree.Make(Rtree.Rectangle)(Line)
 ```
 
-### Insert
+### Insertion
 
 To insert into an rtree, you simply pass a value into a pre-existing rtree. You can create an empty
 rtree where you control the maximum node load size. This is essentially the branching factor in the
@@ -68,6 +70,17 @@ val index : R.t = <abstr>
 val index : R.t = <abstr>
 # let index = R.insert index Line.{ p0 = (4., 4.); p1 = (5., 5.) };;
 val index : R.t = <abstr>
+```
+
+#### Loading
+
+If you have a list of values to put into an rtree, then you are better off using the `load` function instead
+of folding and inserting. This uses the [OMT algorithm](https://ceur-ws.org/Vol-74/files/FORUM_18.pdf) and should
+give you a more optimised rtree layout.
+
+```ocaml
+# R.load [ Line.{ p0 = (1., 2.); p1 = (3., 3.) }; ];;
+- : R.t = <abstr>
 ```
 
 ### Find

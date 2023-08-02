@@ -162,6 +162,71 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         0
 
   let size t = size' t.tree
+
+  let rec values' acc = function
+    | Node lst ->
+      List.fold_left (fun a (_, v) -> values' a v) acc lst
+    | Leaf vs -> List.map snd vs
+    | Empty -> []
+
+  let values t = values' [] t.tree
+
+  let log_base b n = log n /. log b
+
+  let sort_by_dim entries i =
+    List.stable_sort (fun v1 v2 -> Float.compare (E.get_dim (V.envelope v1) i) (E.get_dim (V.envelope v2) i)) entries
+
+  let rec fold_lefti f i accu l =
+    match l with
+      [] -> accu
+    | a::l -> fold_lefti f (i + 1) (f i accu a) l
+
+  (** Partitions a list into n equally sized lists except the last
+      parition which may overfill if it needs to. *)
+  let parition_by_n lst n =
+    let partitions = List.init n (fun _ -> []) in
+    let add_partition ps idx v =
+      List.mapi (fun i p -> if i = min idx (n - 1) then v :: p else p) ps
+    in
+    fold_lefti (fun i partitions v -> add_partition partitions (i / n) v) 0 partitions lst
+    |> List.map List.rev
+
+  let envelope_of_tree = function
+    | Node e -> E.merge_many (List.map fst e)
+    | Leaf e -> E.merge_many (List.map fst e)
+    | Empty -> E.empty
+
+  let rec omt ~height ~level ~slices ~m entries =
+    if List.length entries <= m then begin
+      (* We're in the leaves *)
+      let leaves = List.map (fun v -> (V.envelope v, v)) entries in
+      Leaf leaves
+    end else begin
+      let ps = parition_by_n entries slices in
+      let rec run_slices acc = function
+        | [] -> List.rev acc
+        | slice :: ss ->
+          let s = sort_by_dim slice ((height - level) mod E.dimensions) in
+          let ps = parition_by_n s m in
+          let children = List.map (omt ~height ~level:(level - 1) ~slices ~m) ps in
+          let nodes = List.map (fun v -> (envelope_of_tree v, v)) children in
+          run_slices (Node nodes :: acc) ss
+      in
+      let v = run_slices [] ps |> List.map (fun v -> envelope_of_tree v, v) in
+      Node v
+    end
+
+  let load ?(max_node_load=8) entries =
+    let m = float_of_int max_node_load in
+    let n = float_of_int @@ List.length entries in
+    let height = Float.ceil (log_base m n) in
+    let n_subtree = Float.pow m (height -. 1.) in
+    let n_root = Float.ceil (n /. n_subtree) in
+    (* Number of slices *)
+    let s = Float.floor (Float.sqrt n_root) in
+    let height = int_of_float height in
+    let tree = omt ~height ~slices:(int_of_float s) ~level:height ~m:(int_of_float n_root) entries in
+    { max_node_load; tree }
 end
 
 module Rectangle = Rectangle
