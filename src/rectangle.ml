@@ -8,9 +8,7 @@ let get_dim (x0, _, y0, _) = function
   | n -> invalid_arg ("Only two dimensions and you accessed " ^ string_of_int n)
 
 let t = Repr.(quad float float float float)
-
 let make ~x0 ~y0 ~x1 ~y1 = (x0, x1, y0, y1)
-
 let ranges_intersect a b a' b' = a' <= b && a <= b'
 
 let intersects (x0, x1, y0, y1) (x0', x1', y0', y1') =
@@ -18,17 +16,16 @@ let intersects (x0, x1, y0, y1) (x0', x1', y0', y1') =
   ranges_intersect x0 x1 x0' x1' && ranges_intersect y0 y1 y0' y1'
 
 let merge (x0, x1, y0, y1) (x0', x1', y0', y1') =
-  min x0 x0', max x1 x1', min y0 y0', max y1 y1'
+  (min x0 x0', max x1 x1', min y0 y0', max y1 y1')
 
 let rec merge_many = function
   | e :: [] -> e
   | e :: es -> merge e (merge_many es)
   | [] -> raise (Invalid_argument "can't zero envelopes")
 
-let area (x0, x1, y0, y1) =
-  (x1 -. x0) *. (y1 -. y0)
+let area (x0, x1, y0, y1) = (x1 -. x0) *. (y1 -. y0)
 
 let contains (x0, x1, y0, y1) (x0', x1', y0', y1') =
   x0 <= x0' && x1 >= x1' && y0 <= y0' && y1 >= y1'
 
-let empty = 0., 0., 0., 0.
+let empty = (0., 0., 0., 0.)
