@@ -1,1 +1,2 @@
-include Rtree_intf.Intf (** @inline *)
+include Rtree_intf.Intf
+(** @inline *)

@@ -14,16 +14,16 @@ module Point = struct
 
   type envelope = Rtree.Rectangle.t
 
-  let envelope t : Rtree.Rectangle.t = t.x, t.y, t.x, t.y
+  let envelope t : Rtree.Rectangle.t = (t.x, t.y, t.x, t.y)
 end
 
 module Rtree = Rtree.Make (Rtree.Rectangle) (Point)
 
-let random_points ?(min=(-180.)) ?(max=180.) num =
+let random_points ?(min = -180.) ?(max = 180.) num =
   List.init num (fun _ ->
-    let x = Random.float (max -. min) +. min in
-    let y = Random.float (max -. min) +. min in
-    { Point.x; y })
+      let x = Random.float (max -. min) +. min in
+      let y = Random.float (max -. min) +. min in
+      { Point.x; y })
 
 let bench_insert i =
   let points = random_points i in
@@ -35,21 +35,22 @@ let bench_insert i =
 let bench_find i =
   let points = random_points i in
   let p = List.nth points (i / 2) in
-  let index = List.fold_left (fun r p -> Rtree.insert r p) (Rtree.empty 8) points in
-  let run () =
-    Rtree.find index (Point.envelope p)
+  let index =
+    List.fold_left (fun r p -> Rtree.insert r p) (Rtree.empty 8) points
   in
+  let run () = Rtree.find index (Point.envelope p) in
   Staged.stage run
 
 let suite =
-  Test.make_grouped ~name:"rtree" [
-    Test.make_indexed ~name:"insert" ~fmt:"%s %7d"
-      ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
-      bench_insert;
-    Test.make_indexed ~name:"find" ~fmt:"%s %7d"
-      ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
-      bench_find;
-  ]
+  Test.make_grouped ~name:"rtree"
+    [
+      Test.make_indexed ~name:"insert" ~fmt:"%s %7d"
+        ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
+        bench_insert;
+      Test.make_indexed ~name:"find" ~fmt:"%s %7d"
+        ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
+        bench_find;
+    ]
 
 let metrics =
   Toolkit.Instance.[ minor_allocated; major_allocated; monotonic_clock ]

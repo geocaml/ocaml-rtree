@@ -86,11 +86,11 @@ module type S = sig
   val t : t Repr.t
   (** A runtime representation of the rtree. *)
 
-  (** Envelopes for the Rtree. *)
   module Envelope : Envelope
+  (** Envelopes for the Rtree. *)
 
-  (** Values stored in the Rtree. *)
   module Value : Value with type envelope = Envelope.t
+  (** Values stored in the Rtree. *)
 
   val empty : int -> t
   (** The empty tree configured with a maximum load size. This
@@ -115,15 +115,16 @@ module type S = sig
       It uses the {{: https://ceur-ws.org/Vol-74/files/FORUM_18.pdf} OMT algorithm}. *)
 end
 
-module type Maker =
-  functor (Envelope : Envelope) (Value : Value with type envelope = Envelope.t) ->
-  S with module Envelope = Envelope and module Value = Value
+module type Maker = functor
+  (Envelope : Envelope)
+  (Value : Value with type envelope = Envelope.t)
+  -> S with module Envelope = Envelope and module Value = Value
 
 module type Intf = sig
   module type Value = Value
 
-  (** Envelopes are bounding boxes.*)
   module type Envelope = Envelope
+  (** Envelopes are bounding boxes.*)
 
   module type S = S
   module type Maker = Maker
