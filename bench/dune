@@ -1,3 +1,6 @@
 (executable
  (name main)
  (libraries bechamel rtree))
+
+(mdx
+ (deps main.exe))

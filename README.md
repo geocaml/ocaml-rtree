@@ -8,6 +8,8 @@ where most of the core implementation was done_.
 This implements a simple rtree library according to [Guttman's original paper](http://www-db.deis.unibo.it/courses/SI-LS/papers/Gut84.pdf).
 Currently node splitting is done through the quadratic algorithm in that paper.
 
+[Some benchmarks are available too](./bench/README.md).
+
 ## Usage
 
 There are two key elements to an rtree. The type of envelopes used and the type of the values being store in the tree.
