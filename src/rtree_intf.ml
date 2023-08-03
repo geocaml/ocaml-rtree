@@ -1,5 +1,3 @@
-
-
 module type Value = sig
   (** Values are stored in the Rtree and must provide a means
       of calculating an envelope (minimal bounding box).

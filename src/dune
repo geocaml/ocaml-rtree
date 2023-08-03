@@ -3,4 +3,5 @@
  (public_name rtree)
  (libraries repr))
 
-(documentation (package rtree))
+(documentation
+ (package rtree))
