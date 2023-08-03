@@ -12,7 +12,7 @@
  (name rtree)
  (synopsis "A pure OCaml R-Tree implementation")
  (depends
-  repr
+  (repr (>= 0.4.0))
   (bechamel :with-test)
   (vg :with-test)
   (ounit2 :with-test)
