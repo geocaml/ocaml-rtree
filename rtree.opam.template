@@ -1,3 +1,0 @@
-pin-depends: [
-  [ "repr.dev" "git+https://github.com/mirage/repr#8eeecc2fb92422980157617383635aff2df8508c" ]
-]
