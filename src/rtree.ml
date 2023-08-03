@@ -24,6 +24,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     |+ field "tree" tree_t (fun t -> t.tree)
     |> sealr
 
+  let tree t = t.tree
+
   let empty max_node_load =
     if max_node_load < 2 then invalid_arg "Max node load must be greater than 1";
     { max_node_load; tree = Empty }
@@ -154,62 +156,67 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
   let values t = values' [] t.tree
   let log_base b n = log n /. log b
 
-  let sort_by_dim entries i = List.stable_sort (fun v1 v2 -> E.compare_dim i (V.envelope v1) (V.envelope v2)) entries
+  let sort_by_dim entries i =
+    List.stable_sort
+      (fun v1 v2 -> E.compare_dim i (V.envelope v1) (V.envelope v2))
+      entries
 
   let rec fold_lefti f i accu l =
     match l with [] -> accu | a :: l -> fold_lefti f (i + 1) (f i accu a) l
 
-  (** Partitions a list into n equally sized lists except the last
-      parition which may overfill if it needs to. *)
   let parition_by_n lst n =
+    let m = List.length lst / n in
     let partitions = List.init n (fun _ -> []) in
     let add_partition ps idx v =
       List.mapi (fun i p -> if i = min idx (n - 1) then v :: p else p) ps
     in
     fold_lefti
-      (fun i partitions v -> add_partition partitions (i / n) v)
+      (fun i partitions v -> add_partition partitions (i / m) v)
       0 partitions lst
     |> List.map List.rev
+    |> List.filter_map (fun v -> if v = [] then None else Some v)
 
-  let envelope_of_tree = function
-    | Node e -> E.merge_many (List.map fst e)
-    | Leaf e -> E.merge_many (List.map fst e)
-    | Empty -> E.empty
+  (* A lot of this code is inspired by https://github.com/georust/rstar/blob/master/rstar/src/algorithm/bulk_load/bulk_load_sequential.rs *)
+  let number_along_axis ~m n =
+    let m = float_of_int m in
+    let n = float_of_int n in
+    let depth = log_base m n in
+    let n_subtree = Float.pow m (depth -. 1.) in
+    let n_cluster = Float.ceil @@ (n /. n_subtree) in
+    Float.pow n_cluster (1. /. float_of_int E.dimensions)
+    |> Float.ceil |> int_of_float
 
-  let rec omt ~height ~level ~slices ~m entries =
+  let rec omt ~m entries =
     if List.length entries <= m then
-      (* We're in the leaves *)
       let leaves = List.map (fun v -> (V.envelope v, v)) entries in
       Leaf leaves
     else
-      let ps = parition_by_n entries slices in
-      let rec run_slices acc = function
-        | [] -> List.rev acc
-        | slice :: ss ->
-            let s = sort_by_dim slice ((height - level) mod E.dimensions) in
-            let ps = parition_by_n s m in
-            let children =
-              List.map (omt ~height ~level:(level - 1) ~slices ~m) ps
-            in
-            let nodes = List.map (fun v -> (envelope_of_tree v, v)) children in
-            run_slices (Node nodes :: acc) ss
+      let slices = number_along_axis ~m (List.length entries) in
+      let q =
+        let q' = Queue.create () in
+        Queue.add (entries, E.dimensions - 1) q';
+        q'
       in
-      let v = run_slices [] ps |> List.map (fun v -> (envelope_of_tree v, v)) in
-      Node v
+      let n = partitioning_task ~slices ~m q in
+      Node n
+
+  and partitioning_task ~slices ~m q =
+    let rec loop acc =
+      match Queue.take_opt q with
+      | None -> List.rev acc
+      | Some (elements, 0) ->
+          let env = List.map V.envelope elements |> E.merge_many in
+          loop ((env, omt ~m elements) :: acc)
+      | Some (elements, n) ->
+          let partitions = parition_by_n elements slices in
+          let partitions = List.map (fun v -> sort_by_dim v n) partitions in
+          List.iter (fun slab -> Queue.add (slab, n - 1) q) partitions;
+          loop acc
+    in
+    loop []
 
   let load ?(max_node_load = 8) entries =
-    let m = float_of_int max_node_load in
-    let n = float_of_int @@ List.length entries in
-    let height = Float.ceil (log_base m n) in
-    let n_subtree = Float.pow m (height -. 1.) in
-    let n_root = Float.ceil (n /. n_subtree) in
-    (* Number of slices *)
-    let s = Float.floor (Float.sqrt n_root) in
-    let height = int_of_float height in
-    let tree =
-      omt ~height ~slices:(int_of_float s) ~level:height
-        ~m:(int_of_float n_root) entries
-    in
+    let tree = omt ~m:max_node_load entries in
     { max_node_load; tree }
 end
 

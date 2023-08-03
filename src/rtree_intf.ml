@@ -92,6 +92,15 @@ module type S = sig
   module Value : Value with type envelope = Envelope.t
   (** Values stored in the Rtree. *)
 
+  type tree =
+    | Node of (Envelope.t * tree) list
+    | Leaf of (Envelope.t * Value.t) list
+    | Empty  (** The representation of a tree *)
+
+  val tree : t -> tree
+  (** Get a representation of the tree. There is no guarantee that this is the
+      same representation used internally. *)
+
   val empty : int -> t
   (** The empty tree configured with a maximum load size. This
       is the number of children allowed at a level. *)
