@@ -1,0 +1,95 @@
+{0 Rtree}
+
+An {{: http://www-db.deis.unibo.it/courses/SI-LS/papers/Gut84.pdf} Rtree} is a data-structure for indexing geospatial information. They are quite
+closely related to B-trees. They make it quicker to perform geospatial queries on
+data such as "what are all the items that are inside this area?".
+
+This library provides in-memory Rtrees that are parameterised over both the envelope
+(minimal bounding box) and the values stored in the the rtree. Note that the values
+are tied to the envelope as you must provide a means of calculating an envelope from
+any value.
+
+To this end you probably want to start with {! Rtree.Make} and for must two-dimensional
+use cases the {! Rtree.Rectangle} envelope it probably what you are looking for.
+
+{1 Core Modules}
+
+{!modules: Rtree Rtree.Make Rtree.Rectangle}
+
+{1 Guide}
+
+There are two key elements to an rtree. The type of envelopes used and the type of the values being store in the tree.
+These values must come with a function to calculate an envelope.
+
+The core library comes with an implementation of envelopes as two-dimensional {! Rtree.Rectangle}.
+
+If you wanted to store lines in your rtree, one possible implementation might be the following.
+
+{@ocaml[
+module Line = struct
+  type t = { p0 : float * float; p1 : float * float }
+
+  let t =
+    let open Repr in
+    record "line" (fun p0 p1 -> { p0; p1 })
+    |+ field "p0" (pair float float) (fun t -> t.p0)
+    |+ field "p1" (pair float float) (fun t -> t.p1)
+    |> sealr
+
+  type envelope = Rtree.Rectangle.t
+
+  let envelope { p0 = (x1, y1); p1 = (x2, y2) } =
+    let x0 = Float.min x1 x2 in
+    let x1 = Float.max x1 x2 in
+    let y0 = Float.min y1 y2 in
+    let y1 = Float.max y1 y2 in
+    Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+end
+
+module R = Rtree.Make(Rtree.Rectangle)(Line)
+]}
+
+{2 Insertion}
+
+To insert into an rtree, you simply pass a value into a pre-existing rtree. You can create an empty
+rtree where you control the maximum node load size. This is essentially the branching factor in the
+tree. The correct value is hard to guess.
+
+{@ocaml[
+# let index = R.empty 8;;
+val index : R.t = <abstr>
+# let index = R.insert index Line.{ p0 = (1., 2.); p1 = (3., 3.) };;
+val index : R.t = <abstr>
+# let index = R.insert index Line.{ p0 = (4., 4.); p1 = (5., 5.) };;
+val index : R.t = <abstr>
+]}
+
+{3 Loading}
+
+If you have a list of values to put into an rtree, then you are better off using the `load` function instead
+of folding and inserting. This uses the {{: https://ceur-ws.org/Vol-74/files/FORUM_18.pdf} OMT algorithm} and
+should give you a more optimised rtree layout.
+
+{@ocaml[
+let lines =
+    Line.[
+      { p0 = (0., 0.); p1 = (1., 1.) };
+      { p0 = (1., 1.); p1 = (2., 2.) };
+      { p0 = (2., 2.); p1 = (3., 3.) };
+      { p0 = (3., 3.); p1 = (4., 4.) };
+    ]
+in
+  R.load ~max_node_load:2 lines
+]}
+
+{2 Find}
+
+Finding values requires you to pass in a search envelope. A list of result, perhaps empty, will be returned.
+
+{@ocaml[
+# R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:3. ~y1:3.);;
+- : Line.t list = [{Line.p0 = (1., 2.); p1 = (3., 3.)}]
+# R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.);;
+- : Line.t list =
+[{Line.p0 = (4., 4.); p1 = (5., 5.)}; {Line.p0 = (1., 2.); p1 = (3., 3.)}]
+]}

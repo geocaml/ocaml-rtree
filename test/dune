@@ -1,4 +1,18 @@
 (tests
  (names basic persist)
+ (modules basic persist)
  (deps r.idx)
  (libraries ounit2 rtree))
+
+(executable
+ (name image)
+ (modules image)
+ (libraries rtree vg vg.svg))
+
+(rule
+ (alias runtest)
+ (deps ./image.exe)
+ (targets ./rtree.svg)
+ (mode promote)
+ (action
+  (run ./image.exe)))

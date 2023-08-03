@@ -14,5 +14,6 @@
  (depends
   repr
   (bechamel :with-test)
+  (vg :with-test)
   (ounit2 :with-test)
-  (mdx :with-test)))
+  (mdx (and :with-test (>= 2.2.0)))))

@@ -75,8 +75,7 @@ val index : R.t = <abstr>
 #### Loading
 
 If you have a list of values to put into an rtree, then you are better off using the `load` function instead
-of folding and inserting. This uses the [OMT algorithm](https://ceur-ws.org/Vol-74/files/FORUM_18.pdf) and should
-give you a more optimised rtree layout.
+of folding and inserting. This uses the [OMT algorithm](https://ceur-ws.org/Vol-74/files/FORUM_18.pdf) and should give you a more optimised rtree layout.
 
 ```ocaml
 # let lines =
@@ -89,9 +88,13 @@ give you a more optimised rtree layout.
   in
   let idx = R.load ~max_node_load:2 lines in
   print_endline (Repr.to_string R.t idx)
-{"max_node_load":2,"tree":{"Node":[[[0,4,0,4],{"Node":[[[0,2,0,2],{"Leaf":[[[0,1,0,1],{"p0":[0,0],"p1":[1,1]}],[[1,2,1,2],{"p0":[1,1],"p1":[2,2]}]]}],[[2,4,2,4],{"Leaf":[[[2,3,2,3],{"p0":[2,2],"p1":[3,3]}],[[3,4,3,4],{"p0":[3,3],"p1":[4,4]}]]}]]}]]}}
+{"max_node_load":2,"tree":{"Node":[[[0,2,0,2],{"Leaf":[[[0,1,0,1],{"p0":[0,0],"p1":[1,1]}],[[1,2,1,2],{"p0":[1,1],"p1":[2,2]}]]}],[[2,4,2,4],{"Leaf":[[[2,3,2,3],{"p0":[2,2],"p1":[3,3]}],[[3,4,3,4],{"p0":[3,3],"p1":[4,4]}]]}]]}}
 - : unit = ()
 ```
+
+Also see [image.ml](./test/image.ml) for rendering an rtree with [vg](https://erratique.ch/software/vg).
+
+<img alt="An rtree rendered with bounding box levels in different colours and the elements are lines" src="./test/rtree.svg" />
 
 ### Find
 
