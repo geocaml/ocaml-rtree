@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>index (rtree.index)</title><link rel="stylesheet" href="../odoc.support/odoc.css"/><meta charset="utf-8"/><meta name="generator" content="odoc 2.2.0"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – rtree</nav><header class="odoc-preamble"><h1 id="rtree"><a href="#rtree" class="anchor"></a>Rtree</h1><p>An <a href="http://www-db.deis.unibo.it/courses/SI-LS/papers/Gut84.pdf">Rtree</a> is a data-structure for indexing geospatial information. They are quite closely related to B-trees. They make it quicker to perform geospatial queries on data such as &quot;what are all the items that are inside this area?&quot;.</p><p>This library provides in-memory Rtrees that are parameterised over both the envelope (minimal bounding box) and the values stored in the the rtree. Note that the values are tied to the envelope as you must provide a means of calculating an envelope from any value.</p><p>To this end you probably want to start with <a href="Rtree/Make/index.html"><code>Rtree.Make</code></a> and for must two-dimensional use cases the <a href="Rtree/Rectangle/index.html"><code>Rtree.Rectangle</code></a> envelope it probably what you are looking for.</p></header><nav class="odoc-toc"><ul><li><a href="#core-modules">Core Modules</a></li><li><a href="#guide">Guide</a><ul><li><a href="#insertion">Insertion</a><ul><li><a href="#loading">Loading</a></li></ul></li><li><a href="#find">Find</a></li></ul></li></ul></nav><div class="odoc-content"><h2 id="core-modules"><a href="#core-modules" class="anchor"></a>Core Modules</h2><ul class="modules"><li><a href="Rtree/index.html"><code>Rtree</code></a> </li><li><a href="Rtree/Make/index.html"><code>Rtree.Make</code></a> </li><li><a href="Rtree/Rectangle/index.html"><code>Rtree.Rectangle</code></a> </li></ul><h2 id="guide"><a href="#guide" class="anchor"></a>Guide</h2><p>There are two key elements to an rtree. The type of envelopes used and the type of the values being store in the tree. These values must come with a function to calculate an envelope.</p><p>The core library comes with an implementation of envelopes as two-dimensional <a href="Rtree/Rectangle/index.html"><code>Rtree.Rectangle</code></a>.</p><p>If you wanted to store lines in your rtree, one possible implementation might be the following.</p><pre class="language-ocaml"><code>module Line = struct
+  type t = { p0 : float * float; p1 : float * float }
+
+  let t =
+    let open Repr in
+    record &quot;line&quot; (fun p0 p1 -&gt; { p0; p1 })
+    |+ field &quot;p0&quot; (pair float float) (fun t -&gt; t.p0)
+    |+ field &quot;p1&quot; (pair float float) (fun t -&gt; t.p1)
+    |&gt; sealr
+
+  type envelope = Rtree.Rectangle.t
+
+  let envelope { p0 = (x1, y1); p1 = (x2, y2) } =
+    let x0 = Float.min x1 x2 in
+    let x1 = Float.max x1 x2 in
+    let y0 = Float.min y1 y2 in
+    let y1 = Float.max y1 y2 in
+    Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+end
+
+module R = Rtree.Make(Rtree.Rectangle)(Line)</code></pre><h3 id="insertion"><a href="#insertion" class="anchor"></a>Insertion</h3><p>To insert into an rtree, you simply pass a value into a pre-existing rtree. You can create an empty rtree where you control the maximum node load size. This is essentially the branching factor in the tree. The correct value is hard to guess.</p><pre class="language-ocaml"><code># let index = R.empty 8;;
+val index : R.t = &lt;abstr&gt;
+# let index = R.insert index Line.{ p0 = (1., 2.); p1 = (3., 3.) };;
+val index : R.t = &lt;abstr&gt;
+# let index = R.insert index Line.{ p0 = (4., 4.); p1 = (5., 5.) };;
+val index : R.t = &lt;abstr&gt;</code></pre><h4 id="loading"><a href="#loading" class="anchor"></a>Loading</h4><p>If you have a list of values to put into an rtree, then you are better off using the `load` function instead of folding and inserting. This uses the <a href="https://ceur-ws.org/Vol-74/files/FORUM_18.pdf">OMT algorithm</a> and should give you a more optimised rtree layout.</p><pre class="language-ocaml"><code>let lines =
+    Line.[
+      { p0 = (0., 0.); p1 = (1., 1.) };
+      { p0 = (1., 1.); p1 = (2., 2.) };
+      { p0 = (2., 2.); p1 = (3., 3.) };
+      { p0 = (3., 3.); p1 = (4., 4.) };
+    ]
+in
+  R.load ~max_node_load:2 lines</code></pre><h3 id="find"><a href="#find" class="anchor"></a>Find</h3><p>Finding values requires you to pass in a search envelope. A list of result, perhaps empty, will be returned.</p><pre class="language-ocaml"><code># R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:3. ~y1:3.);;
+- : Line.t list = [{Line.p0 = (1., 2.); p1 = (3., 3.)}]
+# R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.);;
+- : Line.t list =
+[{Line.p0 = (4., 4.); p1 = (5., 5.)}; {Line.p0 = (1., 2.); p1 = (3., 3.)}]</code></pre></div></body></html>
