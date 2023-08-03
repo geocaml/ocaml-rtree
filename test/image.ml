@@ -52,13 +52,13 @@ let make_random_line x_max y_max =
   let p1 = Gg.P2.v x1 y1 in
   (p0, p1)
 
-let line ?(color = Gg.Color.black) ?(width = 0.3) start end' =
+let line ?(color = Gg.Color.gray 0.7) ?(width = 0.3) start end' =
   let open Vg in
   let line = P.empty |> P.sub start |> P.line end' |> P.close in
   let area = `O { P.o with P.width } in
   I.const color |> I.cut ~area line
 
-let point ?(color = Gg.Color.black) ?(width = 0.3) pt =
+let point ?(color = Gg.Color.gray 0.7) ?(width = 0.3) pt =
   let open Vg in
   let dot =
     let circle = P.empty |> P.circle Gg.P2.o (0.5 *. width) in
