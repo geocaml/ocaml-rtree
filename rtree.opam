@@ -8,7 +8,7 @@ homepage: "https://github.com/geocaml/ocaml-rtree"
 bug-reports: "https://github.com/geocaml/ocaml-rtree/issues"
 depends: [
   "dune" {>= "3.6"}
-  "repr"
+  "repr" {>= "0.4.0"}
   "bechamel" {with-test}
   "vg" {with-test}
   "ounit2" {with-test}
@@ -30,6 +30,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/geocaml/ocaml-rtree.git"
-pin-depends: [
-  [ "repr.dev" "git+https://github.com/mirage/repr#8eeecc2fb92422980157617383635aff2df8508c" ]
-]

@@ -19,7 +19,8 @@ let make_random_envelope () =
   and x1 = Random.float 100. -. 50.
   and y0 = Random.float 100. -. 50.
   and y1 = Random.float 100. -. 50. in
-  (min x0 x1, max x0 x1, min y0 y1, max y0 y1)
+  Rtree.Rectangle.v ~x0:(min x0 x1) ~x1:(max x0 x1) ~y0:(min y0 y1)
+    ~y1:(max y0 y1)
 
 let rec make_random_envelopes = function
   | 0 -> []
@@ -100,20 +101,20 @@ let test_lines () =
           let x1 = Float.max x1 x2 in
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
-          Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
       end)
   in
   let l1 = { p1 = (1., 2.); p2 = (2., 3.) } in
   let index = R.insert (R.empty 8) l1 in
-  let l1' = R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:3. ~y1:3.) in
+  let l1' = R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:3. ~y1:3.) in
   assert (List.length l1' = 1);
   assert (l1 = List.hd l1');
   let l2 = { p1 = (3., 4.); p2 = (5., 5.) } in
   let index = R.insert index l2 in
-  let l1' = R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:3. ~y1:3.) in
+  let l1' = R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:3. ~y1:3.) in
   assert (List.length l1' = 1);
   assert (l1 = List.hd l1');
-  let l1' = R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.) in
+  let l1' = R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:5. ~y1:5.) in
   assert (List.length l1' = 2);
   let vs = R.values index in
   assert (List.length vs = 2)
@@ -134,7 +135,7 @@ let omt_loader () =
           let x1 = Float.max x1 x2 in
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
-          Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
       end)
   in
   let lines =

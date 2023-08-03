@@ -21,7 +21,7 @@ The core library comes with an implementation of envelopes as two-dimensional re
 # #show_module Rtree.Rectangle;;
 module Rectangle :
   sig
-    type t = float * float * float * float
+    type t
     val dimensions : int
     val compare_dim : int -> t -> t -> int
     val t : t Repr__Type.t
@@ -31,7 +31,8 @@ module Rectangle :
     val merge_many : t list -> t
     val area : t -> float
     val contains : t -> t -> bool
-    val make : x0:float -> y0:float -> x1:float -> y1:float -> t
+    val coords : t -> float * float * float * float
+    val v : x0:float -> y0:float -> x1:float -> y1:float -> t
   end
 ```
 
@@ -55,7 +56,7 @@ module Line = struct
     let x1 = Float.max x1 x2 in
     let y0 = Float.min y1 y2 in
     let y1 = Float.max y1 y2 in
-    Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+    Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
 end
 
 module R = Rtree.Make(Rtree.Rectangle)(Line)
@@ -106,9 +107,9 @@ Also see [image.ml](./test/image.ml) for rendering an rtree with [vg](https://er
 Finding values requires you to pass in a search envelope. A list of result, perhaps empty, will be returned.
 
 ```ocaml
-# R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:3. ~y1:3.);;
+# R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:3. ~y1:3.);;
 - : Line.t list = [{Line.p0 = (1., 2.); p1 = (3., 3.)}]
-# R.find index (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.);;
+# R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:5. ~y1:5.);;
 - : Line.t list =
 [{Line.p0 = (4., 4.); p1 = (5., 5.)}; {Line.p0 = (1., 2.); p1 = (3., 3.)}]
 ```

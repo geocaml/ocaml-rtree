@@ -14,7 +14,8 @@ module Point = struct
 
   type envelope = Rtree.Rectangle.t
 
-  let envelope t : Rtree.Rectangle.t = (t.x, t.y, t.x, t.y)
+  let envelope t : Rtree.Rectangle.t =
+    Rtree.Rectangle.v ~x0:t.x ~x1:t.x ~y0:t.y ~y1:t.y
 end
 
 module Rtree = Rtree.Make (Rtree.Rectangle) (Point)
@@ -43,14 +44,20 @@ let bench_find i =
   let index =
     List.fold_left (fun r p -> Rtree.insert r p) (Rtree.empty 8) points
   in
-  let run () = Rtree.find index (Point.envelope p) in
+  let run () =
+    let ps = Rtree.find index (Point.envelope p) in
+    assert (List.exists (fun p' -> p = p') ps)
+  in
   Staged.stage run
 
 let bench_find_load i =
   let points = random_points i in
   let p = List.nth points (i / 2) in
   let index = Rtree.load ~max_node_load:8 points in
-  let run () = Rtree.find index (Point.envelope p) in
+  let run () =
+    let ps = Rtree.find index (Point.envelope p) in
+    assert (List.exists (fun p' -> p = p') ps)
+  in
   Staged.stage run
 
 let suite =

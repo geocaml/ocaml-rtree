@@ -9,7 +9,7 @@ module Line = struct
     let x1 = Float.max arr.(0) arr.(2) in
     let y0 = Float.min arr.(1) arr.(3) in
     let y1 = Float.max arr.(1) arr.(3) in
-    Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+    Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
 end
 
 module R = Rtree.Make (Rtree.Rectangle) (Line)
@@ -50,7 +50,7 @@ let () =
   let idx =
     Ic.input_all ic |> Repr.(unstage @@ of_bin_string R.t) |> Result.get_ok
   in
-  let all = R.find idx (Rtree.Rectangle.make ~x0:0. ~y0:0. ~x1:5. ~y1:5.) in
+  let all = R.find idx (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:5. ~y1:5.) in
   let retrieved =
     List.for_all
       (fun v -> List.exists (Repr.(unstage @@ equal Line.t) v) lines)
