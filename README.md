@@ -99,6 +99,7 @@ of folding and inserting. This uses the [OMT algorithm](https://ceur-ws.org/Vol-
 Also see [image.ml](./test/image.ml) for rendering an rtree with [vg](https://erratique.ch/software/vg).
 
 <img alt="An rtree rendered with bounding box levels in different colours and the elements are lines" src="./test/rtree.svg" />
+<img alt="An rtree rendered with bounding box levels in different colours and the elements are points, this has most points skewed towards the bottom to show how this impacts the shape of the rtree" src="./test/rtree-points.svg" />
 
 ### Find
 
