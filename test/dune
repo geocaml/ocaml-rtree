@@ -12,7 +12,7 @@
 (rule
  (alias runtest)
  (deps ./image.exe)
- (targets ./rtree.svg)
+ (targets ./rtree.svg ./rtree-points.svg)
  (mode promote)
  (action
   (run ./image.exe)))

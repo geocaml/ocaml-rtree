@@ -8,6 +8,8 @@ where most of the core implementation was done_.
 This implements a simple rtree library according to [Guttman's original paper](http://www-db.deis.unibo.it/courses/SI-LS/papers/Gut84.pdf).
 Currently node splitting is done through the quadratic algorithm in that paper.
 
+[Some benchmarks are available too](./bench/README.md).
+
 ## Usage
 
 There are two key elements to an rtree. The type of envelopes used and the type of the values being store in the tree.
@@ -97,6 +99,7 @@ of folding and inserting. This uses the [OMT algorithm](https://ceur-ws.org/Vol-
 Also see [image.ml](./test/image.ml) for rendering an rtree with [vg](https://erratique.ch/software/vg).
 
 <img alt="An rtree rendered with bounding box levels in different colours and the elements are lines" src="./test/rtree.svg" />
+<img alt="An rtree rendered with bounding box levels in different colours and the elements are points, this has most points skewed towards the bottom to show how this impacts the shape of the rtree" src="./test/rtree-points.svg" />
 
 ### Find
 

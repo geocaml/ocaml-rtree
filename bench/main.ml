@@ -32,6 +32,11 @@ let bench_insert i =
   in
   Staged.stage run
 
+let bench_load i =
+  let points = random_points i in
+  let run () = Rtree.load ~max_node_load:8 points in
+  Staged.stage run
+
 let bench_find i =
   let points = random_points i in
   let p = List.nth points (i / 2) in
@@ -41,15 +46,28 @@ let bench_find i =
   let run () = Rtree.find index (Point.envelope p) in
   Staged.stage run
 
+let bench_find_load i =
+  let points = random_points i in
+  let p = List.nth points (i / 2) in
+  let index = Rtree.load ~max_node_load:8 points in
+  let run () = Rtree.find index (Point.envelope p) in
+  Staged.stage run
+
 let suite =
   Test.make_grouped ~name:"rtree"
     [
       Test.make_indexed ~name:"insert" ~fmt:"%s %7d"
         ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
         bench_insert;
+      Test.make_indexed ~name:"load" ~fmt:"%s %7d"
+        ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
+        bench_load;
       Test.make_indexed ~name:"find" ~fmt:"%s %7d"
         ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
         bench_find;
+      Test.make_indexed ~name:"find_load" ~fmt:"%s %7d"
+        ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
+        bench_find_load;
     ]
 
 let metrics =
