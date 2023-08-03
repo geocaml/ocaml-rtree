@@ -1,5 +1,7 @@
 # ocaml-rtree
 
+[Online Documentation](https://geocaml.github.io/ocaml-rtree/)
+
 _This repository used to live at [mariusae/ocaml-rtree](https://github.com/mariusae/ocaml-rtree)
 where most of the core implementation was done_.
 
