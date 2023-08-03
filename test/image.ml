@@ -18,7 +18,7 @@ module Line = struct
     let x1 = max (Gg.P2.x p1) (Gg.P2.x p2) in
     let y0 = min (Gg.P2.y p1) (Gg.P2.y p2) in
     let y1 = max (Gg.P2.y p1) (Gg.P2.y p2) in
-    Rtree.Rectangle.make ~x0 ~x1 ~y0 ~y1
+    Rtree.Rectangle.v ~x0 ~x1 ~y0 ~y1
 end
 
 module Point = struct
@@ -37,7 +37,7 @@ module Point = struct
   let envelope p1 =
     let x0 = Gg.P2.x p1 in
     let y0 = Gg.P2.y p1 in
-    Rtree.Rectangle.make ~x0 ~x1:x0 ~y0 ~y1:y0
+    Rtree.Rectangle.v ~x0 ~x1:x0 ~y0 ~y1:y0
 end
 
 module R = Rtree.Make (Rtree.Rectangle) (Line)
@@ -69,7 +69,7 @@ let point ?(color = Gg.Color.black) ?(width = 0.3) pt =
 let rect ~color (e : R.Envelope.t) =
   let open Vg in
   let open Gg in
-  let x0, x1, y0, y1 = e in
+  let x0, x1, y0, y1 = Rtree.Rectangle.coords e in
   let p1 = V2.v x0 y0 in
   let p2 = V2.v x1 y0 in
   let p3 = V2.v x1 y1 in

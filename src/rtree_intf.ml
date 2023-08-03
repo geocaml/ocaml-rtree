@@ -23,7 +23,7 @@ module type Value = sig
             let x1 = Float.max x1 x2 in
             let y0 = Float.min y1 y2 in
             let y1 = Float.max y1 y2 in
-            Rtree.Rectangle.make ~x0 ~y0 ~x1 ~y1
+            Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
         end
       ]}
 
@@ -141,8 +141,11 @@ module type Intf = sig
   module Make : Maker
 
   module Rectangle : sig
-    include Envelope with type t = float * float * float * float
+    include Envelope
 
-    val make : x0:float -> y0:float -> x1:float -> y1:float -> t
+    val coords : t -> float * float * float * float
+    (** Gives you [x0, x1, y0, y1]. *)
+
+    val v : x0:float -> y0:float -> x1:float -> y1:float -> t
   end
 end
