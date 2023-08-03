@@ -119,7 +119,7 @@ Finding values requires you to pass in a search envelope. A list of result, perh
 Rtree asks you to provide a runtime representation of your stored values, which allows you to persist your index easily.
 
 ```ocaml
-# Format.printf "%a" (Repr.pp R.t) index;;
+# Fmt.pr "%a" (Repr.pp R.t) index;;
 {"max_node_load":8,"tree":{"Leaf":[[[4,5,4,5],{"p0":[4,4],"p1":[5,5]}],[[1,3,2,3],{"p0":[1,2],"p1":[3,3]}]]}}
 - : unit = ()
 ```
