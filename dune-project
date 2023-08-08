@@ -1,5 +1,7 @@
 (lang dune 3.6)
 
+(name rtree)
+
 (using mdx 0.3)
 
 (generate_opam_files true)
