@@ -34,7 +34,8 @@ let v ~x0 ~y0 ~x1 ~y1 =
   Array.Floatarray.unsafe_set arr 3 y1;
   arr
 
-let ranges_intersect a b a' b' = a' <= b && a <= b'
+let ranges_intersect a b a' b' =
+  Float.compare a' b <= 0 && Float.compare a b' <= 0
 
 let intersects arr arr' =
   let x0, x0' = (x0 arr, x0 arr') in
@@ -70,7 +71,10 @@ let contains arr arr' =
   let x1, x1' = (x1 arr, x1 arr') in
   let y0, y0' = (y0 arr, y0 arr') in
   let y1, y1' = (y1 arr, y1 arr') in
-  x0 <= x0' && x1 >= x1' && y0 <= y0' && y1 >= y1'
+  Float.compare x0 x0' <= 0
+  && Float.compare x1 x1' >= 0
+  && Float.compare y0 y0' <= 0
+  && Float.compare y1 y1' >= 0
 
 let empty =
   let arr = Array.Floatarray.create 4 in

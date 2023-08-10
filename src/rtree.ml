@@ -38,7 +38,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | ((e', _) as n) :: ns ->
         let enlargement = enlargement_needed e e' in
         let min, maxs, enlargement' = partition_by_min_enlargement e ns in
-        if enlargement < enlargement' then (n, min :: maxs, enlargement)
+        if Float.compare enlargement enlargement' < 0 then
+          (n, min :: maxs, enlargement)
         else (min, n :: maxs, enlargement')
     | [] -> raise (Invalid_argument "cannot partition an empty node")
 
@@ -57,7 +58,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
       | ((n, n') as pair) :: ns ->
           let max_cost', pair' = max_cost ns in
           let cost = cost n n' in
-          if cost > max_cost' then (cost, pair) else (max_cost', pair')
+          if Float.compare cost max_cost' > 0 then (cost, pair)
+          else (max_cost', pair')
       | [] -> raise (Invalid_argument "can't compute split on empty list")
     in
     let _, groups = max_cost pairs in
@@ -72,7 +74,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
       | n :: ns ->
           let diff', n' = max_difference ns in
           let diff = diff n in
-          if diff > diff' then (diff, n) else (diff', n')
+          if Float.compare diff diff' > 0 then (diff, n) else (diff', n')
       | [] -> raise (Invalid_argument "can't compute max diff on empty list")
     in
     let _, n = max_difference ns in
@@ -86,7 +88,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
           let rest' = List.filter (( != ) n) rest in
           let enlargement_x = enlargement_needed e xs_envelope in
           let enlargement_y = enlargement_needed e ys_envelope in
-          if enlargement_x < enlargement_y then
+          if Float.compare enlargement_x enlargement_y < 0 then
             partition (n :: xs) (E.merge xs_envelope e) ys ys_envelope rest'
           else partition xs xs_envelope (n :: ys) (E.merge ys_envelope e) rest'
     in
