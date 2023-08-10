@@ -149,6 +149,15 @@ let omt_loader () =
   let idx = R.load ~max_node_load:2 lines in
   print_endline (Repr.to_string R.t idx)
 
+let rectangle () =
+  let r1 = Rtree.Rectangle.v ~x0:(-1.) ~y0:(-1.) ~x1:1. ~y1:1. in
+  assert (r1 = Rtree.Rectangle.(merge r1 empty));
+  assert (r1 = Rtree.Rectangle.(merge_many [ r1 ]));
+  let r2 = Rtree.Rectangle.v ~x0:(-2.) ~y0:(-2.) ~x1:0. ~y1:0. in
+  let r3 = Rtree.Rectangle.v ~x0:(-2.) ~y0:(-2.) ~x1:1. ~y1:1. in
+  let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
+  assert (r = r3)
+
 let suite =
   "R"
   >::: [
@@ -156,6 +165,7 @@ let suite =
          "functor" >:: test_functor;
          "lines" >:: test_lines;
          "omt" >:: omt_loader;
+         "rect" >:: rectangle;
        ]
 
 let _ = run_test_tt_main suite

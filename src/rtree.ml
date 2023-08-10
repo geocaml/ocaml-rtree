@@ -1,3 +1,4 @@
+open! Import
 include Rtree_intf
 
 module Make (E : Envelope) (V : Value with type envelope = E.t) = struct

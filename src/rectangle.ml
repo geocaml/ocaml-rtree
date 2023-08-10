@@ -1,3 +1,5 @@
+open! Import
+
 type t = floatarray
 (* lower left x, upper right x, lower left y, upper right y*)
 
@@ -56,10 +58,11 @@ let merge arr arr' =
   Array.Floatarray.unsafe_set arr 3 (max y1 y1');
   arr
 
-let rec merge_many = function
-  | e :: [] -> e
-  | e :: es -> merge e (merge_many es)
+let merge_many t =
+  let rec loop acc = function [] -> acc | e :: es -> loop (merge e acc) es in
+  match t with
   | [] -> raise (Invalid_argument "can't zero envelopes")
+  | e :: es -> loop e es
 
 let area arr =
   let x0, x1, y0, y1 = (x0 arr, x1 arr, y0 arr, y1 arr) in
