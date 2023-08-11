@@ -190,11 +190,12 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     |> Float.ceil |> int_of_float
 
   let rec omt ~m entries =
-    if List.length entries <= m then
+    let length = List.length entries in
+    if length <= m then
       let leaves = List.map (fun v -> (V.envelope v, v)) entries in
       Leaf leaves
     else
-      let slices = number_along_axis ~m (List.length entries) in
+      let slices = number_along_axis ~m length in
       let q =
         let q' = Queue.create () in
         Queue.add (entries, E.dimensions - 1) q';
