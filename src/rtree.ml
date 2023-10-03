@@ -222,6 +222,16 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
   let load ?(max_node_load = 8) entries =
     let tree = omt ~m:max_node_load entries in
     { max_node_load; tree }
+
+  let rec depth' = function
+  | Node ns ->
+      let sub_sizes = List.map (fun (_, n) -> depth' n) ns in
+      List.fold_left max 0 sub_sizes    
+  | Leaf _ -> 1
+  | Empty -> 0
+
+  let depth t = depth' t.tree
+
 end
 
 module Rectangle = Rectangle
