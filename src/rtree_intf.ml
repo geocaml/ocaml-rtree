@@ -122,7 +122,7 @@ module type S = sig
       a better tree and is preferred over folding with {! insert}.
 
       It uses the {{: https://ceur-ws.org/Vol-74/files/FORUM_18.pdf} OMT algorithm}. *)
-      
+
   val depth : t -> int
   (** [depth tree] returns the depth of the tree. *)
 end
