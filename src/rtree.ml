@@ -225,3 +225,11 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 end
 
 module Rectangle = Rectangle
+
+(* Iter Function *)
+let rec iter (rtree : Rtree.t) (f : Rtree.tree -> unit) : unit =
+  match rtree with
+  | Rtree.Leaf -> ()  
+  | Rtree.Node (value, children) ->
+    f value;  
+    List.iter (fun child -> iter child f) children

@@ -158,6 +158,27 @@ let rectangle () =
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
 
+  (* let sample_tree : Rtree.tree =
+    Rtree.Node (1, [
+      Rtree.Node (2, []);
+      Rtree.Node (3, [
+        Rtree.Node (4, []);
+        Rtree.Node (5, []);
+      ]);
+      Rtree.Node (6, []);
+    ])
+  
+  let print_value (value : Rtree.tree) : unit =
+    match value with
+    | Rtree.Leaf -> ()
+    | Rtree.Node (v, _) -> print_int v; print_newline ()
+  
+  let test_iter () =
+    iter sample_tree print_value
+  
+  let () =
+    test_iter ()   *)
+
 let suite =
   "R"
   >::: [
