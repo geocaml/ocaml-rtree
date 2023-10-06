@@ -158,26 +158,41 @@ let rectangle () =
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
 
-  (* let sample_tree : Rtree.tree =
-    Rtree.Node (1, [
-      Rtree.Node (2, []);
-      Rtree.Node (3, [
-        Rtree.Node (4, []);
-        Rtree.Node (5, []);
-      ]);
-      Rtree.Node (6, []);
-    ])
-  
-  let print_value (value : Rtree.tree) : unit =
-    match value with
-    | Rtree.Leaf -> ()
-    | Rtree.Node (v, _) -> print_int v; print_newline ()
-  
-  let test_iter () =
-    iter sample_tree print_value
-  
-  let () =
-    test_iter ()   *)
+  (* Testing iter function *)
+
+type point = int * int
+
+module Rtree = struct
+type t = Node of (point * t) list | Leaf of point list
+
+  let rec _iter rtree f =
+    match rtree with
+    | Leaf _ -> ()
+    | Node children ->
+      List.iter (fun (_, child) -> _iter child f) children
+
+  let iter t f = _iter t f
+end
+
+let test_iter () =
+  let module Rtree = Rtree in
+  let myTree =
+    Rtree.Node [
+      ((1, 2), Rtree.Leaf [((1, 2)); (3, 4)]);
+      ((2, 3), Rtree.Leaf [((5, 6)); (7, 8)]);
+    ]
+  in
+  let square_point (x, y) =
+    let squared_x = x * x in
+    let squared_y = y * y in
+    let _squared_point = (squared_x, squared_y) in
+    Printf.printf "Squared Point: (%d, %d)\n" squared_x squared_y;
+    let expected_squared_x = x * x in
+    let expected_squared_y = y * y in
+    assert (squared_x = expected_squared_x && squared_y = expected_squared_y);
+    squared_x, squared_y
+  in
+  Rtree.iter myTree square_point
 
 let suite =
   "R"
@@ -187,6 +202,7 @@ let suite =
          "lines" >:: test_lines;
          "omt" >:: omt_loader;
          "rect" >:: rectangle;
+         "iter" >:: iter;
        ]
 
 let _ = run_test_tt_main suite
