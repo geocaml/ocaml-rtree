@@ -179,12 +179,13 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     |> List.map List.rev
     |> List.filter_map (fun v -> if v = [] then None else Some v)
   
-    let rec _iter t f =
-      match t with
-      | Leaf _ -> ()
-      | Node children ->
-        List.iter (fun (_, child) -> _iter child f) children
-      | Empty -> ()
+  (* Rtree Iter Function *)
+  let rec _iter rtree f =
+    match rtree with
+    | Leaf _ -> ()
+    | Node children ->
+      List.iter (fun (_, child) -> _iter child f) children
+    | Empty -> ()
 
 
   (* A lot of this code is inspired by https://github.com/georust/rstar/blob/master/rstar/src/algorithm/bulk_load/bulk_load_sequential.rs *)
