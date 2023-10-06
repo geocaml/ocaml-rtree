@@ -202,7 +202,7 @@ let suite =
          "lines" >:: test_lines;
          "omt" >:: omt_loader;
          "rect" >:: rectangle;
-         "iter" >:: iter;
+         "iter" >:: test_iter;
        ]
 
 let _ = run_test_tt_main suite
