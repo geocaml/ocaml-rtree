@@ -158,26 +158,37 @@ let rectangle () =
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
 
-  (* let sample_tree : Rtree.tree =
-    Rtree.Node (1, [
-      Rtree.Node (2, []);
-      Rtree.Node (3, [
-        Rtree.Node (4, []);
-        Rtree.Node (5, []);
-      ]);
-      Rtree.Node (6, []);
-    ])
-  
-  let print_value (value : Rtree.tree) : unit =
-    match value with
-    | Rtree.Leaf -> ()
-    | Rtree.Node (v, _) -> print_int v; print_newline ()
-  
-  let test_iter () =
-    iter sample_tree print_value
-  
-  let () =
-    test_iter ()   *)
+let test_depth () =
+  let module R =
+    Rtree.Make
+      (Rtree.Rectangle)
+      (struct
+        type t = line
+
+        let t = lint_t
+
+        type envelope = Rtree.Rectangle.t
+
+        let envelope { p1 = x1, y1; p2 = x2, y2 } =
+          let x0 = Float.min x1 x2 in
+          let x1 = Float.max x1 x2 in
+          let y0 = Float.min y1 y2 in
+          let y1 = Float.max y1 y2 in
+          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+      end)
+  in
+  let lines =
+    [
+      { p1 = (0., 0.); p2 = (1., 1.) };
+      { p1 = (1., 1.); p2 = (2., 2.) };
+      { p1 = (2., 2.); p2 = (3., 3.) };
+      { p1 = (3., 3.); p2 = (4., 4.) };
+    ]
+  in
+  let t = R.load ~max_node_load:2 lines in
+  let calc_depth = R.depth t in
+  assert (calc_depth = 2)
+
 
 let suite =
   "R"
@@ -187,6 +198,7 @@ let suite =
          "lines" >:: test_lines;
          "omt" >:: omt_loader;
          "rect" >:: rectangle;
+         "depth" >:: test_depth;
        ]
 
 let _ = run_test_tt_main suite
