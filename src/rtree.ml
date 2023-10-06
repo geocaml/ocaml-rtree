@@ -178,6 +178,14 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
       0 partitions lst
     |> List.map List.rev
     |> List.filter_map (fun v -> if v = [] then None else Some v)
+  
+    let rec _iter t f =
+      match t with
+      | Leaf _ -> ()
+      | Node children ->
+        List.iter (fun (_, child) -> _iter child f) children
+      | Empty -> ()
+
 
   (* A lot of this code is inspired by https://github.com/georust/rstar/blob/master/rstar/src/algorithm/bulk_load/bulk_load_sequential.rs *)
   let number_along_axis ~m n =
@@ -225,11 +233,3 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 end
 
 module Rectangle = Rectangle
-
-(* Iter Function *)
-let rec iter (rtree : Rtree.t) (f : Rtree.tree -> unit) : unit =
-  match rtree with
-  | Rtree.Leaf -> ()  
-  | Rtree.Node (value, children) ->
-    f value;  
-    List.iter (fun child -> iter child f) children
