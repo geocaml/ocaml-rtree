@@ -182,10 +182,10 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
   (* Rtree Iter Function *)
   let rec iter rtree f =
     match rtree with
-    | Leaf _ -> (f)
+    | Leaf value -> f value
     | Node children ->
-      List.iter (fun (_, child) -> _iter child f) children
-    | Empty -> (f)
+      List.iter (fun (_, child) -> iter child f) children
+    | Empty -> f
 
 
   (* A lot of this code is inspired by https://github.com/georust/rstar/blob/master/rstar/src/algorithm/bulk_load/bulk_load_sequential.rs *)

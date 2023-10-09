@@ -126,9 +126,9 @@ module type S = sig
   val depth : t -> int
   (** [depth tree] returns the depth of the tree. *)
 
-  type f function
+  (* type f:f*)
 
-  val iter : t -> f -> list
+  val iter : t -> 'f -> 'a list
 
 end
 
