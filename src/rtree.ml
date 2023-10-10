@@ -184,6 +184,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     match rtree with
     | Leaf value -> f value
     | Node children ->
+      f Node ;
       List.iter (fun (_, child) -> iter child f) children
     | Empty -> f
 
