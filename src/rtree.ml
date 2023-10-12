@@ -182,7 +182,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
   (* Rtree Iter Function *)
   let rec iter rtree f =
     match rtree with
-    | Leaf value -> f value
+    | Leaf _ as v -> f v
     | Node children ->
       List.iter (fun (_, child) -> iter child f) children
     | Empty -> f
