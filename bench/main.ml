@@ -38,15 +38,13 @@ let bench_load i =
   let run () = Rtree.load ~max_node_load:8 points in
   Staged.stage run
 
-let bench_depth i = 
-  let points = random_points i in 
+let bench_depth i =
+  let points = random_points i in
   let index =
     List.fold_left (fun r p -> Rtree.insert r p) (Rtree.empty 3) points
   in
-  let run () = Rtree.depth index 
-  in
+  let run () = Rtree.depth index in
   Staged.stage run
-
 
 let bench_find i =
   let points = random_points i in
