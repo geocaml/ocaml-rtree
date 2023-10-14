@@ -10,6 +10,9 @@ module Line = struct
     let y0 = Float.min arr.(1) arr.(3) in
     let y1 = Float.max arr.(1) arr.(3) in
     Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+  
+  let mindist _p _e = 0.
+  let minmaxdist _p _e = 0.
 end
 
 module R = Rtree.Make (Rtree.Rectangle) (Line)

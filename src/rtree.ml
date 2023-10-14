@@ -232,6 +232,16 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Empty -> depth
 
   let depth t = depth' t.tree 0
+(* 
+  let nearest_neighbor elem = function 
+  | Node ns -> 
+      (* let sub_sizes = List.map (fun (_, n) -> size' n) ns in
+          List.fold_left ( + ) 0 sub_sizes *)
+  | Leaf es -> 
+      let sub_sizes = List.fold_left () es in
+        List.fold_left ( + ) 0 sub_sizes
+  | Empty -> *)
+
 end
 
 module Rectangle = Rectangle

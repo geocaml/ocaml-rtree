@@ -43,6 +43,9 @@ module type Value = sig
 
   val envelope : t -> envelope
   (** Given a value, calculates the envelope for it. *)
+
+  val mindist: t -> envelope -> float
+  val minmaxdist: t -> envelope -> float
 end
 
 module type Envelope = sig
