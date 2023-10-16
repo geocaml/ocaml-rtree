@@ -104,8 +104,7 @@ module R1 =
     end)
 
 let test_lines () =
-  let module R = R1
-  in  
+  let module R = R1 in
   let l1 = { p1 = (1., 2.); p2 = (2., 3.) } in
   let index = R.insert (R.empty 8) l1 in
   let l1' = R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:3. ~y1:3.) in
@@ -122,8 +121,7 @@ let test_lines () =
   assert (List.length vs = 2)
 
 let omt_loader () =
-  let module R = R1
-  in
+  let module R = R1 in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
@@ -145,8 +143,7 @@ let rectangle () =
   assert (r = r3)
 
 let test_depth () =
-  let module R = R1
-  in
+  let module R = R1 in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
