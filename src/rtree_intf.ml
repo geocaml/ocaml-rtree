@@ -128,7 +128,7 @@ module type S = sig
 
   (* type f:f*)
 
-  val iter : t -> 'f -> 'a list
+  val iter: tree -> (tree -> unit) -> unit
 
 end
 
