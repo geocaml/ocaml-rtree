@@ -159,27 +159,28 @@ let rectangle () =
   assert (r = r3)
 
   (* Testing iter function *)
-
-type point = int * int
-
-module Rtree = struct
-type t = Node of (point * t) list | Leaf of point list
-
-  let rec _iter rtree f =
-    match rtree with
-    | Leaf _ -> ()
-    | Node children ->
-      List.iter (fun (_, child) -> _iter child f) children
-
-  let iter t f = _iter t f
-end
-
 let test_iter () =
-  let module Rtree = Rtree in
+  let module R =
+    Rtree.Make
+      (Rtree.Rectangle)
+      (struct
+        type t = int
+
+        let t = Repr.float
+
+        let envelope { Rtree.Rectangle.x_min = x1; y_min = y1; x_max = x2; y_max = y2 } =
+          let x0 = min x1 x2 in
+          let x1 = max x1 x2 in
+          let y0 = min y1 y2 in
+          let y1 = max y1 y2 in
+          Rtree.Rectangle.v ~x_min:x0 ~y_min:y0 ~x_max:x1 ~y_max:y1
+      end)
+  in
+
   let myTree =
-    Rtree.Node [
-      ((1, 2), Rtree.Leaf [((1, 2)); (3, 4)]);
-      ((2, 3), Rtree.Leaf [((5, 6)); (7, 8)]);
+    R.Node [
+      ((1, 2), R.Leaf [((1, 2)); (3, 4)]);
+      ((2, 3), R.Leaf [((5, 6)); (7, 8)]);
     ]
   in
   let square_point (x, y) =
@@ -192,7 +193,8 @@ let test_iter () =
     assert (squared_x = expected_squared_x && squared_y = expected_squared_y);
     squared_x, squared_y
   in
-  Rtree.iter myTree square_point
+  R.iter myTree square_point
+
 let test_depth () =
   let module R =
     Rtree.Make
