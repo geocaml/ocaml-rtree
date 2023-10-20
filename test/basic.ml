@@ -158,42 +158,42 @@ let rectangle () =
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
 
-  (* Testing iter function *)
+(* Testing iter function *)
 let test_iter () =
   let module R =
     Rtree.Make
       (Rtree.Rectangle)
       (struct
-        type t = int
+        type t = line
 
-        let t = Repr.float
+        let t = lint_t
 
-        let envelope { Rtree.Rectangle.x_min = x1; y_min = y1; x_max = x2; y_max = y2 } =
-          let x0 = min x1 x2 in
-          let x1 = max x1 x2 in
-          let y0 = min y1 y2 in
-          let y1 = max y1 y2 in
-          Rtree.Rectangle.v ~x_min:x0 ~y_min:y0 ~x_max:x1 ~y_max:y1
+        type envelope = Rtree.Rectangle.t
+
+        let envelope { p1 = x1, y1; p2 = x2, y2 } =
+          let x0 = Float.min x1 x2 in
+          let x1 = Float.max x1 x2 in
+          let y0 = Float.min y1 y2 in
+          let y1 = Float.max y1 y2 in
+          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
       end)
   in
-
-  let myTree =
-    R.Node [
-      ((1, 2), R.Leaf [((1, 2)); (3, 4)]);
-      ((2, 3), R.Leaf [((5, 6)); (7, 8)]);
+  let lines =
+    [
+      { p1 = (0., 0.); p2 = (1., 1.) };
+      { p1 = (1., 1.); p2 = (2., 2.) };
+      { p1 = (2., 2.); p2 = (3., 3.) };
+      { p1 = (3., 3.); p2 = (4., 4.) };
     ]
   in
-  let square_point (x, y) =
-    let squared_x = x * x in
-    let squared_y = y * y in
-    let _squared_point = (squared_x, squared_y) in
-    Printf.printf "Squared Point: (%d, %d)\n" squared_x squared_y;
-    let expected_squared_x = x * x in
-    let expected_squared_y = y * y in
-    assert (squared_x = expected_squared_x && squared_y = expected_squared_y);
-    squared_x, squared_y
+  let t = R.load ~max_node_load:2 lines in
+  let square_point = function
+    | R.Leaf lst ->
+        let f line = Fmt.pr "%a" (Repr.pp lint_t) line in
+        List.iter f (List.map snd lst)
+    | _ -> ()
   in
-  R.iter myTree square_point
+  R.iter t square_point
 
 let test_depth () =
   let module R =
@@ -225,7 +225,6 @@ let test_depth () =
   let t = R.load ~max_node_load:2 lines in
   let calc_depth = R.depth t in
   assert (calc_depth = 2)
-
 
 let suite =
   "R"
