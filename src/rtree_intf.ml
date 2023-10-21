@@ -125,6 +125,9 @@ module type S = sig
 
   val depth : t -> int
   (** [depth tree] returns the depth of the tree. *)
+
+  val nearest_neighbor : t -> Value.t -> Value.t
+  (** [nearest_neighbor tree] returns the nearest neighbour of the query in the tree. *)
 end
 
 module type Maker = functor
