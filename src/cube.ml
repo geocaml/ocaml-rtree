@@ -1,7 +1,7 @@
 open! Import
 
 type t = floatarray
-(* lower left x, upper right x, lower left y, upper right y, lower left z, upper right z*)
+(* represents cube in 3D with coordinates of the diagonal: lower left x, upper right x, lower left y, upper right y, lower left z, upper right z*)
 
 let dimensions = 3
 let x0 arr = Array.Floatarray.unsafe_get arr 0
@@ -54,7 +54,7 @@ let intersects arr arr' =
   let y1, y1' = (y1 arr, y1 arr') in
   let z0, z0' = (z0 arr, z0 arr') in
   let z1, z1' = (z1 arr, z1 arr') in
-  (* For two envelopes to intersect, three of their ranges do. *)
+  (* For three envelopes to intersect, three of their ranges do. *)
   ranges_intersect x0 x1 x0' x1'
   && ranges_intersect y0 y1 y0' y1'
   && ranges_intersect z0 z1 z0' z1'
