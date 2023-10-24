@@ -16,7 +16,7 @@ let compare_dim i arr arr' =
   | 0 -> Float.compare (x0 arr) (x0 arr')
   | 1 -> Float.compare (y0 arr) (y0 arr')
   | 2 -> Float.compare (z0 arr) (z0 arr')
-  | n -> invalid_arg ("Only two dimensions and you accessed " ^ string_of_int n)
+  | n -> invalid_arg ("Only three dimensions and you accessed " ^ string_of_int n)
 
 let t =
   let to_array arr = Float.Array.to_list arr |> Array.of_list in
