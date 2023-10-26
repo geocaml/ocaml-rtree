@@ -85,25 +85,26 @@ let lint_t =
   |+ field "p2" (pair float float) (fun t -> t.p2)
   |> sealr
 
+module R1 =
+  Rtree.Make
+    (Rtree.Rectangle)
+    (struct
+      type t = line
+
+      let t = lint_t
+
+      type envelope = Rtree.Rectangle.t
+
+      let envelope { p1 = x1, y1; p2 = x2, y2 } =
+        let x0 = Float.min x1 x2 in
+        let x1 = Float.max x1 x2 in
+        let y0 = Float.min y1 y2 in
+        let y1 = Float.max y1 y2 in
+        Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+    end)
+
 let test_lines () =
-  let module R =
-    Rtree.Make
-      (Rtree.Rectangle)
-      (struct
-        type t = line
-
-        let t = lint_t
-
-        type envelope = Rtree.Rectangle.t
-
-        let envelope { p1 = x1, y1; p2 = x2, y2 } =
-          let x0 = Float.min x1 x2 in
-          let x1 = Float.max x1 x2 in
-          let y0 = Float.min y1 y2 in
-          let y1 = Float.max y1 y2 in
-          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-      end)
-  in
+  let module R = R1 in
   let l1 = { p1 = (1., 2.); p2 = (2., 3.) } in
   let index = R.insert (R.empty 8) l1 in
   let l1' = R.find index (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:3. ~y1:3.) in
@@ -120,24 +121,7 @@ let test_lines () =
   assert (List.length vs = 2)
 
 let omt_loader () =
-  let module R =
-    Rtree.Make
-      (Rtree.Rectangle)
-      (struct
-        type t = line
-
-        let t = lint_t
-
-        type envelope = Rtree.Rectangle.t
-
-        let envelope { p1 = x1, y1; p2 = x2, y2 } =
-          let x0 = Float.min x1 x2 in
-          let x1 = Float.max x1 x2 in
-          let y0 = Float.min y1 y2 in
-          let y1 = Float.max y1 y2 in
-          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-      end)
-  in
+  let module R = R1 in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
@@ -157,6 +141,7 @@ let rectangle () =
   let r3 = Rtree.Rectangle.v ~x0:(-2.) ~y0:(-2.) ~x1:1. ~y1:1. in
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
+
 
   (* Testing iter function *)
   let test_iter () =
@@ -213,6 +198,7 @@ let rectangle () =
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
       end)
   in
+
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
