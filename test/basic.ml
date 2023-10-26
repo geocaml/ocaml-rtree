@@ -164,37 +164,42 @@ let test_iter () =
     Rtree.Make
       (Rtree.Rectangle)
       (struct
-        type t = int
-
-        let t = Repr.float
-
-        let envelope { Rtree.Rectangle.x_min = x1; y_min = y1; x_max = x2; y_max = y2 } =
-          let x0 = min x1 x2 in
-          let x1 = max x1 x2 in
-          let y0 = min y1 y2 in
-          let y1 = max y1 y2 in
-          Rtree.Rectangle.v ~x_min:x0 ~y_min:y0 ~x_max:x1 ~y_max:y1
+         type t = (float * float) * (float * float)
+         type envelope = Rtree.Rectangle.t
+  
+         let t = Repr.(pair (pair float float) (pair float float))
+  
+         let envelope (p1, p2) =
+           let x0 = min (fst p1) (fst p2) in
+           let x1 = max (fst p1) (fst p2) in
+           let y0 = min (snd p1) (snd p2) in
+           let y1 = max (snd p1) (snd p2) in
+           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
       end)
   in
-
+  
+  
+(* let myTree =
+  R.Node [
+    ((1., 2.), (1., 2.)), R.Leaf [((1., 2.), (3., 4.))];
+    ((2., 3.), (2., 3.)), R.Leaf [((5., 6.), (7., 8.))];
+  ] *)
   let myTree =
-    R.Node [
-      ((1, 2), R.Leaf [((1, 2)); (3, 4)]);
-      ((2, 3), R.Leaf [((5, 6)); (7, 8)]);
-    ]
+  "tree":{"Node":[[[0,2,0,2],{"Leaf":[[[0,1,0,1],{"p1":[0,0],"p2":[1,1]}],[[1,2,1,2],{"p1":[1,1],"p2":[2,2]}]]}],[[2,4,2,4],{"Leaf":[[[2,3,2,3],{"p1":[2,2],"p2":[3,3]}],[[3,4,3,4],{"p1":[3,3],"p2":[4,4]}]]}]]}
   in
+  
   let square_point (x, y) =
-    let squared_x = x * x in
-    let squared_y = y * y in
+    let squared_x = int_of_float (x *. x) in
+    let squared_y = int_of_float (y *. y) in
     let _squared_point = (squared_x, squared_y) in
     Printf.printf "Squared Point: (%d, %d)\n" squared_x squared_y;
-    let expected_squared_x = x * x in
-    let expected_squared_y = y * y in
+    let expected_squared_x = int_of_float (x *. x) in
+    let expected_squared_y = int_of_float (y *. y) in
     assert (squared_x = expected_squared_x && squared_y = expected_squared_y);
     squared_x, squared_y
   in
+  
   R.iter myTree square_point
-
 let test_depth () =
   let module R =
     Rtree.Make
@@ -226,7 +231,47 @@ let test_depth () =
   let calc_depth = R.depth t in
   assert (calc_depth = 2)
 
-
+  let test_iter () =
+    let module R =
+      Rtree.Make
+        (Rtree.Rectangle)
+        (struct
+          type t = line
+  
+          let t = lint_t
+  
+          type envelope = Rtree.Rectangle.t
+  
+          let envelope { p1 = x1, y1; p2 = x2, y2 } =
+            let x0 = min x1 x2 in
+            let x1 = max x1 x2 in
+            let y0 = min y1 y2 in
+            let y1 = max y1 y2 in
+            Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+        end)
+    in
+  
+    let myTree =
+      let l1 = { p1 = (1., 2.); p2 = (2., 3.) } in
+      let l2 = { p1 = (3., 4.); p2 = (5., 5.) } in
+      let index = R.insert (R.empty 8) l1 in
+      let index = R.insert index l2 in
+      index
+    in
+  
+    let add_two line =
+      { line with
+        p1 = (fst line.p1 +. 2., snd line.p1 +. 2.);
+        p2 = (fst line.p2 +. 2., snd line.p2 +. 2.)
+      }
+    in
+  
+    R.iter myTree (fun line ->
+      let modified_line = add_two line in
+      Printf.printf "Modified Line: (%f,%f) - (%f,%f)\n"
+        (fst modified_line.p1) (snd modified_line.p1)
+        (fst modified_line.p2) (snd modified_line.p2)
+    )
 let suite =
   "R"
   >::: [
