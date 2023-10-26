@@ -142,44 +142,8 @@ let rectangle () =
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
 
-
-  (* Testing iter function *)
-  let test_iter () =
-    let module R =
-      Rtree.Make
-        (Rtree.Rectangle)
-        (struct
-          type t = line
-  
-          let t = lint_t
-  
-          type envelope = Rtree.Rectangle.t
-  
-          let envelope { p1 = x1, y1; p2 = x2, y2 } =
-            let x0 = Float.min x1 x2 in
-            let x1 = Float.max x1 x2 in
-            let y0 = Float.min y1 y2 in
-            let y1 = Float.max y1 y2 in
-            Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-        end)
-    in
-    let lines =
-      [
-        { p1 = (0., 0.); p2 = (1., 1.) };
-        { p1 = (1., 1.); p2 = (2., 2.) };
-        { p1 = (2., 2.); p2 = (3., 3.) };
-        { p1 = (3., 3.); p2 = (4., 4.) };
-      ]
-    in
-    let t = R.load ~max_node_load:2 lines in
-    let square_point = function
-      | R.Leaf lst ->
-          let f line = Fmt.pr "%a" (Repr.pp lint_t) line in
-          List.iter f (List.map snd lst)
-      | _ -> ()
-    in
-    R.iter t square_point
-  let test_depth () =
+(* Testing iter function *)
+let test_iter () =
   let module R =
     Rtree.Make
       (Rtree.Rectangle)
@@ -198,7 +162,43 @@ let rectangle () =
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
       end)
   in
+  let lines =
+    [
+      { p1 = (0., 0.); p2 = (1., 1.) };
+      { p1 = (1., 1.); p2 = (2., 2.) };
+      { p1 = (2., 2.); p2 = (3., 3.) };
+      { p1 = (3., 3.); p2 = (4., 4.) };
+    ]
+  in
+  let t = R.load ~max_node_load:2 lines in
+  let points = ref [] in
+  let collect_points = function
+    | R.Leaf lst ->
+        List.map snd lst |> List.iter (fun f -> points := f :: !points)
+    | _ -> ()
+  in
+  R.iter t collect_points;
+  assert (List.length !points = List.length lines)
 
+let test_depth () =
+  let module R =
+    Rtree.Make
+      (Rtree.Rectangle)
+      (struct
+        type t = line
+
+        let t = lint_t
+
+        type envelope = Rtree.Rectangle.t
+
+        let envelope { p1 = x1, y1; p2 = x2, y2 } =
+          let x0 = Float.min x1 x2 in
+          let x1 = Float.max x1 x2 in
+          let y0 = Float.min y1 y2 in
+          let y1 = Float.max y1 y2 in
+          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+      end)
+  in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };

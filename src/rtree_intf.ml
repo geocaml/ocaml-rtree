@@ -126,12 +126,11 @@ module type S = sig
   val depth : t -> int
   (** [depth tree] returns the depth of the tree. *)
 
-  (* type f:f*)
-
-  val iter: t -> (tree -> unit) -> unit
-
+  val iter : t -> (tree -> unit) -> unit
+  (** [iter tree f] will apply [f] to every internal tree node in [t].
+      For a {! Node} this will first apply [f] then descend into the
+      children. *)
 end
-
 
 module type Maker = functor
   (Envelope : Envelope)

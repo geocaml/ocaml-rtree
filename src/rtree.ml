@@ -178,8 +178,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
       0 partitions lst
     |> List.map List.rev
     |> List.filter_map (fun v -> if v = [] then None else Some v)
-  
-  (* Rtree Iter Function *)
+
   let rec iter' rtree f =
     match rtree with
     | Leaf _ as v -> f v
