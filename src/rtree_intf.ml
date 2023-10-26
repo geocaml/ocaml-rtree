@@ -155,9 +155,10 @@ module type Intf = sig
   module Cube : sig
     include Envelope
 
-    val coords : t -> float * float * float * float *float *float
-    (** Gives you [x0, x1, y0, y1, x2, y2]. *)
+    val coords : t -> float * float * float * float * float * float
+    (** Gives you [x0, x1, y0, y1, z0, z1]. *)
 
-    val v : x0:float -> y0:float -> z0:float -> x1:float -> y1:float -> z1:float ->  t
+    val v :
+      x0:float -> y0:float -> z0:float -> x1:float -> y1:float -> z1:float -> t
   end
 end

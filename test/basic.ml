@@ -158,14 +158,14 @@ let rectangle () =
   let r = Rtree.Rectangle.merge_many [ r1; r2 ] in
   assert (r = r3)
 
-let cube () = 
+let cube () =
   let c1 = Rtree.Cube.v ~x0:0. ~y0:0. ~z0:0. ~x1:2. ~y1:2. ~z1:2. in
   let c2 = Rtree.Cube.v ~x0:1. ~y0:1. ~z0:1. ~x1:3. ~y1:3. ~z1:3. in
   let c3 = Rtree.Cube.v ~x0:0. ~y0:0. ~z0:0. ~x1:3. ~y1:3. ~z1:3. in
   assert (Rtree.Cube.(merge c1 empty) = c1);
-  let c = Rtree.Cube.merge_many [c1; c2] in
+  let c = Rtree.Cube.merge_many [ c1; c2 ] in
   assert (Rtree.Cube.intersects c1 c2 = true);
-  assert (c=c3)
+  assert (c = c3)
 
 let test_depth () =
   let module R =

@@ -16,7 +16,8 @@ let compare_dim i arr arr' =
   | 0 -> Float.compare (x0 arr) (x0 arr')
   | 1 -> Float.compare (y0 arr) (y0 arr')
   | 2 -> Float.compare (z0 arr) (z0 arr')
-  | n -> invalid_arg ("Only three dimensions and you accessed " ^ string_of_int n)
+  | n ->
+      invalid_arg ("Only three dimensions and you accessed " ^ string_of_int n)
 
 let t =
   let to_array arr = Float.Array.to_list arr |> Array.of_list in
@@ -87,26 +88,26 @@ let area arr =
   in
   Float.abs (x1 -. x0) *. Float.abs (y1 -. y0) *. Float.abs (z1 -. z0)
 
-  let contains arr arr' =
-    let x0, x0' = (x0 arr, x0 arr') in
-    let x1, x1' = (x1 arr, x1 arr') in
-    let y0, y0' = (y0 arr, y0 arr') in
-    let y1, y1' = (y1 arr, y1 arr') in
-    let z0, z0' = (z0 arr, z0 arr') in
-    let z1, z1' = (z1 arr, z1 arr') in
-    Float.compare x0 x0' <= 0
-    && Float.compare x1 x1' >= 0
-    && Float.compare y0 y0' <= 0
-    && Float.compare y1 y1' >= 0
-    && Float.compare z0 z0' <= 0
-    && Float.compare z1 z1' >= 0
-  
-  let empty =
-    let arr = Array.Floatarray.create 6 in
-    Array.Floatarray.unsafe_set arr 0 0.;
-    Array.Floatarray.unsafe_set arr 1 0.;
-    Array.Floatarray.unsafe_set arr 2 0.;
-    Array.Floatarray.unsafe_set arr 3 0.;
-    Array.Floatarray.unsafe_set arr 4 0.;
-    Array.Floatarray.unsafe_set arr 5 0.;
-    arr
+let contains arr arr' =
+  let x0, x0' = (x0 arr, x0 arr') in
+  let x1, x1' = (x1 arr, x1 arr') in
+  let y0, y0' = (y0 arr, y0 arr') in
+  let y1, y1' = (y1 arr, y1 arr') in
+  let z0, z0' = (z0 arr, z0 arr') in
+  let z1, z1' = (z1 arr, z1 arr') in
+  Float.compare x0 x0' <= 0
+  && Float.compare x1 x1' >= 0
+  && Float.compare y0 y0' <= 0
+  && Float.compare y1 y1' >= 0
+  && Float.compare z0 z0' <= 0
+  && Float.compare z1 z1' >= 0
+
+let empty =
+  let arr = Array.Floatarray.create 6 in
+  Array.Floatarray.unsafe_set arr 0 0.;
+  Array.Floatarray.unsafe_set arr 1 0.;
+  Array.Floatarray.unsafe_set arr 2 0.;
+  Array.Floatarray.unsafe_set arr 3 0.;
+  Array.Floatarray.unsafe_set arr 4 0.;
+  Array.Floatarray.unsafe_set arr 5 0.;
+  arr
