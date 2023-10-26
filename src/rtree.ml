@@ -245,3 +245,4 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 end
 
 module Rectangle = Rectangle
+module Cube = Cube

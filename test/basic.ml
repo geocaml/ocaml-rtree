@@ -180,6 +180,15 @@ let test_iter () =
   R.iter t collect_points;
   assert (List.length !points = List.length lines)
 
+let cube () =
+  let c1 = Rtree.Cube.v ~x0:0. ~y0:0. ~z0:0. ~x1:2. ~y1:2. ~z1:2. in
+  let c2 = Rtree.Cube.v ~x0:1. ~y0:1. ~z0:1. ~x1:3. ~y1:3. ~z1:3. in
+  let c3 = Rtree.Cube.v ~x0:0. ~y0:0. ~z0:0. ~x1:3. ~y1:3. ~z1:3. in
+  assert (Rtree.Cube.(merge c1 empty) = c1);
+  let c = Rtree.Cube.merge_many [ c1; c2 ] in
+  assert (Rtree.Cube.intersects c1 c2 = true);
+  assert (c = c3)
+
 let test_depth () =
   let module R =
     Rtree.Make
@@ -221,6 +230,7 @@ let suite =
          "rect" >:: rectangle;
          "iter" >:: test_iter;
          "depth" >:: test_depth;
+         "cube" >:: cube;
        ]
 
 let _ = run_test_tt_main suite
