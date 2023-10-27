@@ -233,15 +233,22 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     let tree = omt ~m:max_node_load entries in
     { max_node_load; tree }
 
-  let rec depth' node depth =
-    match node with
-    | Node ns ->
-        let sub_depths = List.map (fun (_, n) -> depth' n depth + 1) ns in
-        List.fold_left max 0 sub_depths
-    | Leaf _ -> 1 + depth
-    | Empty -> depth
+  
+  let rec depth' q max_d =
+    match q with 
+    | [] -> max_d      
+    | h :: q1 -> 
+      let (t, d) = h in
+      let max_d' = max max_d d in
+      match t with
+      | Node ns -> 
+        let q2 = List.map (fun (_, t) -> (t, d + 1)) ns in
+        depth' (q1 @ q2) max_d'
+      | Leaf _ -> depth' q1 max_d'
+      | Empty -> depth' q1 max_d'
 
-  let depth t = depth' t.tree 0
+  let depth t = if t.tree==Empty then 0 else depth' [(t.tree, 1)] 0
+  
 end
 
 module Rectangle = Rectangle
