@@ -232,7 +232,7 @@ let test_size () =
   in
   let t = R.load ~max_node_load:2 lines in
   let calc_depth = R.size t in
-  assert (calc_depth = 3)
+  assert (calc_depth = 4)
 
 let suite =
   "R"

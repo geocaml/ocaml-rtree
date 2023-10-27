@@ -149,9 +149,9 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         match h with
         | Node ns ->
             let q2 = List.map (fun (_, t) -> t) ns in
-            size' (q1 @ q2) total_size + 1
-        | Leaf _ -> size' q1 (total_size + 1)
-        | Empty -> size' q1 total_size + 1)
+            size' (q1 @ q2) total_size
+        | Leaf es -> size' q1 total_size + List.length es
+        | Empty -> size' q1 0)
 
   let size t = size' [ t.tree ] 0
 
