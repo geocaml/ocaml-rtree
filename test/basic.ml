@@ -220,6 +220,21 @@ let test_depth () =
   let calc_depth = R.depth t in
   assert (calc_depth = 2)
 
+let test_size () =
+  let module R = R1 in
+  let lines =
+    [
+      { p1 = (0., 0.); p2 = (1., 1.) };
+      { p1 = (1., 1.); p2 = (2., 2.) };
+      { p1 = (2., 2.); p2 = (3., 3.) };
+      { p1 = (3., 3.); p2 = (4., 4.) };
+    ]
+  in
+  let t = R.load ~max_node_load:2 lines in
+  let calc_depth = R.size t in
+  print_int calc_depth;
+  assert (calc_depth = 3)
+
 let suite =
   "R"
   >::: [
@@ -229,6 +244,7 @@ let suite =
          "omt" >:: omt_loader;
          "rect" >:: rectangle;
          "iter" >:: test_iter;
+         "size" >:: test_size;
          "depth" >:: test_depth;
          "cube" >:: cube;
        ]
