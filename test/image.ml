@@ -19,8 +19,6 @@ module Line = struct
     let y0 = min (Gg.P2.y p1) (Gg.P2.y p2) in
     let y1 = max (Gg.P2.y p1) (Gg.P2.y p2) in
     Rtree.Rectangle.v ~x0 ~x1 ~y0 ~y1
-    let mindist _p _e = 0.
-    let minmaxdist _p _e = 0.
 end
 
 module Point = struct
@@ -40,8 +38,6 @@ module Point = struct
     let x0 = Gg.P2.x p1 in
     let y0 = Gg.P2.y p1 in
     Rtree.Rectangle.v ~x0 ~x1:x0 ~y0 ~y1:y0
-  let mindist _p _e = 0.
-  let minmaxdist _p _e = 0.
 end
 
 module R = Rtree.Make (Rtree.Rectangle) (Line)

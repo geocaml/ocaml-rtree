@@ -232,16 +232,43 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Empty -> depth
 
   let depth t = depth' t.tree 0
-(* 
-  let nearest_neighbor elem = function 
-  | Node ns -> 
-      (* let sub_sizes = List.map (fun (_, n) -> size' n) ns in
-          List.fold_left ( + ) 0 sub_sizes *)
-  | Leaf es -> 
-      let sub_sizes = List.fold_left () es in
-        List.fold_left ( + ) 0 sub_sizes
-  | Empty -> *)
+  let comp_dimensions point = E.dimensions == List.length point
 
+  let rec nearest_neighbor_helper node elem =
+    match node with
+    | Node ns ->
+        let minminMaxDist =
+          List.fold_right
+            (fun (e, _) minminMax ->
+              if E.minmaxdist elem e < minminMax then E.minmaxdist elem e
+              else minminMax)
+            ns max_float
+        in
+        let nearest =
+          List.map
+            (fun (e, n) ->
+              let minimum_dist = E.mindist elem e in
+              if minimum_dist <= minminMaxDist then
+                nearest_neighbor_helper n elem
+              else (max_float, None))
+            ns
+        in
+        List.fold_right
+          (fun (dist, value) (min_dist, min_value) ->
+            if min_dist < dist then (min_dist, min_value) else (dist, value))
+          nearest (max_float, None)
+    | Leaf es ->
+        List.fold_right
+          (fun (e, v) nearest ->
+            if E.mindist elem e < fst nearest then (E.mindist elem e, Some v)
+            else nearest)
+          es (max_float, None)
+    | Empty -> (max_float, None)
+
+  let nearest_neighbor rtree elem =
+    match comp_dimensions elem with
+    | true -> nearest_neighbor_helper rtree.tree elem
+    | false -> (max_float, None)
 end
 
 module Rectangle = Rectangle
