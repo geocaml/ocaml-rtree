@@ -142,18 +142,14 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let find t e = find' t.tree e
 
-  let rec size' q total_size =
-    match q with
-    | [] -> total_size
-    | h :: q1 -> (
-        match h with
-        | Node ns ->
-            let q2 = List.map (fun (_, t) -> t) ns in
-            size' (q1 @ q2) total_size
-        | Leaf es -> size' q1 total_size + List.length es
-        | Empty -> size' q1 0)
+  let rec size' = function
+    | Node ns ->
+        let sub_sizes = List.map (fun (_, n) -> size' n) ns in
+        List.fold_left ( + ) 0 sub_sizes
+    | Leaf es -> List.length es
+    | Empty -> 0
 
-  let size t = size' [ t.tree ] 0
+  let size t = size' t.tree
 
   let rec values' acc = function
     | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
@@ -237,18 +233,20 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     let tree = omt ~m:max_node_load entries in
     { max_node_load; tree }
 
-  let rec depth' q max_d =
-    match q with
+    let append l1 l2 = List.fold_left (fun l v -> v :: l) l1 l2
+
+  let rec depth' l max_d =
+    match l with
     | [] -> max_d
-    | h :: q1 -> (
+    | h :: l1 -> (
         let t, d = h in
         let max_d' = max max_d d in
         match t with
         | Node ns ->
-            let q2 = List.map (fun (_, t) -> (t, d + 1)) ns in
-            depth' (q1 @ q2) max_d'
-        | Leaf _ -> depth' q1 max_d'
-        | Empty -> depth' q1 max_d')
+            let l2 = List.map (fun (_, t) -> (t, d + 1)) ns in
+            depth' (append l1 l2) max_d'
+        | Leaf _ -> depth' l1 max_d'
+        | Empty -> depth' l1 max_d')
 
   let depth t = depth' [ (t.tree, 1) ] 0
 end
