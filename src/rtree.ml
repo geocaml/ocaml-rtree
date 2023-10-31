@@ -233,7 +233,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     let tree = omt ~m:max_node_load entries in
     { max_node_load; tree }
 
-    let append l1 l2 = List.fold_left (fun l v -> v :: l) l1 l2
+  let append l1 l2 = List.fold_left (fun l v -> v :: l) l1 l2
 
   let rec depth' l max_d =
     match l with
