@@ -10,6 +10,9 @@ module V = struct
   type envelope = Rtree.Rectangle.t
 
   let envelope i = List.assoc i !pre_made_envelopes
+
+  let mindist _a _b= 0.
+  let minmaxdist _a _b= 0.
 end
 
 module R = Rtree.Make (Rtree.Rectangle) (V)
@@ -64,6 +67,9 @@ let test_functor _ =
         type envelope = Rtree.Rectangle.t
 
         let envelope i = List.assoc i elems
+
+        let mindist _a _b= 0.
+        let minmaxdist _a _b= 0.
       end)
   in
   let r =
@@ -101,6 +107,41 @@ module Vp = struct
   type envelope = Rtree.Rectangle.t
 
   let envelope { p = x, y } = Rtree.Rectangle.v ~x0:x ~y0:y ~x1:x ~y1:y
+
+  let mindist point rect =
+    let x0, x1, y0, y1 = Rtree.Rectangle.coords rect in
+    let gete ind = match ind with 0 -> x0 | 1 -> y0 | 2 -> x1 | _ -> y1 in
+    let get point i = match i with 0 -> fst point.p | _ -> snd point.p in 
+    let dist i =
+      if get point i < gete i then (gete i -. get point i) *. (gete i -. get point i)
+      else if get point i > gete (i + 2) then
+        (get point i -. gete (i + 2)) *. (get point i -. gete (i + 2))
+      else 0.
+    in
+    dist 0 +. dist 1
+  
+  let minmaxdist point rect = 
+    let x0, x1, y0, y1 = Rtree.Rectangle.coords rect in
+    let gete ind = match ind with 0 -> x0 | 1 -> y0 | 2 -> x1 | _ -> y1 in
+    let get point i = match i with 0 -> fst point.p | _ -> snd point.p in 
+    let rm k =
+      if get point k <= (gete k +. gete (k + 2)) /. 2. then gete k else gete (k + 2)
+    in
+  
+    let rM k =
+      if get point k >= (gete k +. gete (k + 2)) /. 2. then gete k else gete (k + 2)
+    in
+  
+    let farthest_distance_axis i = (get point i -. rM i) *. (get point i -. rM i) in
+    let farthest_distance =
+      farthest_distance_axis 0 +. farthest_distance_axis 1
+    in
+    let max_dist_axis i =
+      farthest_distance
+      -. ((get point i -. rM i) *. (get point i -. rM i))
+      +. ((get point i -. rm i) *. (get point i -. rm i))
+    in
+      min (max_dist_axis 0) (max_dist_axis 1)
 end
 
 module Rp = Rtree.Make (Rtree.Rectangle) (Vp)
@@ -122,6 +163,9 @@ let test_lines () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+
+        let mindist _a _b= 0.
+        let minmaxdist _a _b= 0.
       end)
   in
   let l1 = { p1 = (1., 2.); p2 = (2., 3.) } in
@@ -156,6 +200,9 @@ let omt_loader () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+        
+        let mindist _a _b= 0.
+        let minmaxdist _a _b= 0.
       end)
   in
   let lines =
@@ -180,20 +227,20 @@ let rectangle () =
 
 let test_min_dist () =
   let envelope = Rtree.Rectangle.v ~x0:0. ~x1:1. ~y0:0. ~y1:1. in
-  let point = [ 0.0; 2.0 ] in
-  let a = Rtree.Rectangle.mindist point envelope in
-  assert_equal ~printer:string_of_float ~msg:"Test description" 1. a
+  let point = {p = (0.0, 2.0)} in
+  let a = Vp.mindist point envelope in
+  assert_equal ~printer:string_of_float 1. a
 (* above distance is the square of actual distance *)
 
 let test_min_max_dist () =
   let envelope = Rtree.Rectangle.v ~x0:0. ~x1:1. ~y0:0. ~y1:1. in
-  let point = [ 0.; 2.0 ] in
-  let a = Rtree.Rectangle.minmaxdist point envelope in
-  assert_equal ~printer:string_of_float 2. a
-(* above distance is the square of actual distance *)
+  let point = {p = (0.0, 2.0)} in
+  let a = Vp.minmaxdist point envelope in
+  assert_equal ~printer:string_of_float 2. a 
+(* above distance is the square of actual distance*)
 
 let test_nearest_neighbor () =
-  let point = [ 1.0; 2.0 ] in
+  let point = {p = (1.0, 2.0)} in
   let tree_points =
     [ { p = (5.0, 5.0) }; { p = (6.0, 6.0) }; { p = (3.0, 4.0) } ]
   in
@@ -222,6 +269,9 @@ let test_depth () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+
+        let mindist _a _b= 0.
+        let minmaxdist _a _b= 0.
       end)
   in
   let lines =

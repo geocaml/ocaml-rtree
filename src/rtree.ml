@@ -232,7 +232,6 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Empty -> depth
 
   let depth t = depth' t.tree 0
-  let comp_dimensions point = E.dimensions == List.length point
 
   let rec nearest_neighbor_helper node elem =
     match node with
@@ -240,14 +239,14 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         let minminMaxDist =
           List.fold_right
             (fun (e, _) minminMax ->
-              if E.minmaxdist elem e < minminMax then E.minmaxdist elem e
+              if V.minmaxdist elem e < minminMax then V.minmaxdist elem e
               else minminMax)
             ns max_float
         in
         let nearest =
           List.map
             (fun (e, n) ->
-              let minimum_dist = E.mindist elem e in
+              let minimum_dist = V.mindist elem e in
               if minimum_dist <= minminMaxDist then
                 nearest_neighbor_helper n elem
               else (max_float, None))
@@ -260,15 +259,12 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Leaf es ->
         List.fold_right
           (fun (e, v) nearest ->
-            if E.mindist elem e < fst nearest then (E.mindist elem e, Some v)
+            if V.mindist elem e < fst nearest then (V.mindist elem e, Some v)
             else nearest)
           es (max_float, None)
     | Empty -> (max_float, None)
 
-  let nearest_neighbor rtree elem =
-    match comp_dimensions elem with
-    | true -> nearest_neighbor_helper rtree.tree elem
-    | false -> (max_float, None)
+  let nearest_neighbor rtree elem = nearest_neighbor_helper rtree.tree elem
 end
 
 module Rectangle = Rectangle

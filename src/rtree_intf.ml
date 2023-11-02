@@ -43,18 +43,10 @@ module type Value = sig
 
   val envelope : t -> envelope
   (** Given a value, calculates the envelope for it. *)
-end
 
-module type Point = sig
-  type t = int array
+  val mindist: t -> envelope -> float
 
-  val t : t Repr.t
-
-  (* envelope of the Rtree which allows us to calculate the distances*)
-  type envelope
-
-  val mindist : t -> envelope -> float
-  val minmaxdist : t -> envelope -> float
+  val minmaxdist: t -> envelope -> float
 end
 
 module type Envelope = sig
@@ -89,9 +81,6 @@ module type Envelope = sig
 
   val contains : t -> t -> bool
   (** [contains a b] asks whether [b] is contained by [a]. *)
-
-  val minmaxdist : float list -> t -> float
-  val mindist : float list -> t -> float
 end
 
 module type S = sig
@@ -141,7 +130,7 @@ module type S = sig
   val depth : t -> int
   (** [depth tree] returns the depth of the tree. *)
 
-  val nearest_neighbor : t -> float list -> float * Value.t option
+  val nearest_neighbor : t -> Value.t -> float * Value.t option
 end
 
 module type Maker = functor
@@ -159,8 +148,6 @@ module type Intf = sig
   module type Maker = Maker
 
   module Make : Maker
-
-  module type Point = Point
 
   module Rectangle : sig
     include Envelope

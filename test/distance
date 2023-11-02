@@ -1,0 +1,32 @@
+let mindist p e =
+  let x0, y0, x1, y1 = (x0 e, y0 e, x1 e, y1 e) in
+  let gete ind = match ind with 0 -> x0 | 1 -> y0 | 2 -> x1 | _ -> y1 in
+  let dist i =
+    if get p i < gete i then (gete i -. get p i) *. (gete i -. get p i)
+    else if get p i > gete (i + 2) then
+      (get p i -. gete (i + 2)) *. (get p i -. gete (i + 2))
+    else 0.
+  in
+  dist 0 +. dist 1
+
+let minmaxdist p e =
+  let x0, y0, x1, y1 = (x0 e, y0 e, x1 e, y1 e) in
+  let gete ind = match ind with 0 -> x0 | 1 -> y0 | 2 -> x1 | _ -> y1 in
+  let rm k =
+    if get p k <= (gete k +. gete (k + 2)) /. 2. then gete k else gete (k + 2)
+  in
+
+  let rM k =
+    if get p k >= (gete k +. gete (k + 2)) /. 2. then gete k else gete (k + 2)
+  in
+
+  let farthest_distance_axis i = (get p i -. rM i) *. (get p i -. rM i) in
+  let farthest_distance =
+    farthest_distance_axis 0 +. farthest_distance_axis 1
+  in
+  let max_dist_axis i =
+    farthest_distance
+    -. ((get p i -. rM i) *. (get p i -. rM i))
+    +. ((get p i -. rm i) *. (get p i -. rm i))
+  in
+  min (max_dist_axis 0) (max_dist_axis 1)
