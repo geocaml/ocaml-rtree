@@ -110,38 +110,38 @@ module Vp = struct
 
   let mindist point rect =
     let x0, x1, y0, y1 = Rtree.Rectangle.coords rect in
-    let gete ind = match ind with 0 -> x0 | 1 -> y0 | 2 -> x1 | _ -> y1 in
-    let get point i = match i with 0 -> fst point.p | _ -> snd point.p in 
+    let get_rectangle_coordinates ind = match ind with 0 -> x0 | 1 -> x1 | 2 -> y0 | _ -> y1 in
+    let get_point_coordinates point i = match i with 0 -> fst point.p | _ -> snd point.p in
     let dist i =
-      if get point i < gete i then (gete i -. get point i) *. (gete i -. get point i)
-      else if get point i > gete (i + 2) then
-        (get point i -. gete (i + 2)) *. (get point i -. gete (i + 2))
+      if get_point_coordinates point i < get_rectangle_coordinates i then (get_rectangle_coordinates i -. get_point_coordinates point i) *. (get_rectangle_coordinates i -. get_point_coordinates point i)
+      else if get_point_coordinates point i > get_rectangle_coordinates (i + 1) then
+        (get_point_coordinates point i -. get_rectangle_coordinates (i + 1)) *. (get_point_coordinates point i -. get_rectangle_coordinates (i + 1))
       else 0.
     in
-    dist 0 +. dist 1
+    dist 0 +. dist 2
   
-  let minmaxdist point rect = 
+  let minmaxdist point rect =
     let x0, x1, y0, y1 = Rtree.Rectangle.coords rect in
-    let gete ind = match ind with 0 -> x0 | 1 -> y0 | 2 -> x1 | _ -> y1 in
-    let get point i = match i with 0 -> fst point.p | _ -> snd point.p in 
-    let rm k =
-      if get point k <= (gete k +. gete (k + 2)) /. 2. then gete k else gete (k + 2)
+    let get_rectangle_coordinates ind = match ind with 0 -> x0 | 1 -> x1 | 2 -> y0 | _ -> y1 in
+    let get_point_coordinates point i = match i with 0 -> fst point.p | _ -> snd point.p in
+    let nearer_edge k =
+      if get_point_coordinates point k <= (get_rectangle_coordinates k +. get_rectangle_coordinates (k + 1)) /. 2. then get_rectangle_coordinates k else get_rectangle_coordinates (k + 1)
     in
   
-    let rM k =
-      if get point k >= (gete k +. gete (k + 2)) /. 2. then gete k else gete (k + 2)
+    let farther_edge k =
+      if get_point_coordinates point k >= (get_rectangle_coordinates k +. get_rectangle_coordinates (k + 1)) /. 2. then get_rectangle_coordinates k else get_rectangle_coordinates (k + 1)
     in
-  
-    let farthest_distance_axis i = (get point i -. rM i) *. (get point i -. rM i) in
+
+    let farthest_distance_axis i = (get_point_coordinates point i -. farther_edge i) *. (get_point_coordinates point i -. farther_edge i) in
     let farthest_distance =
-      farthest_distance_axis 0 +. farthest_distance_axis 1
+      farthest_distance_axis 0 +. farthest_distance_axis 2
     in
     let max_dist_axis i =
       farthest_distance
-      -. ((get point i -. rM i) *. (get point i -. rM i))
-      +. ((get point i -. rm i) *. (get point i -. rm i))
+      -. ((get_point_coordinates point i -. farther_edge i) *. (get_point_coordinates point i -. farther_edge i))
+      +. ((get_point_coordinates point i -. nearer_edge i) *. (get_point_coordinates point i -. nearer_edge i))
     in
-      min (max_dist_axis 0) (max_dist_axis 1)
+      min (max_dist_axis 0) (max_dist_axis 2)
 end
 
 module Rp = Rtree.Make (Rtree.Rectangle) (Vp)

@@ -44,9 +44,12 @@ module type Value = sig
   val envelope : t -> envelope
   (** Given a value, calculates the envelope for it. *)
 
-  val mindist: t -> envelope -> float
+  val mindist : t -> envelope -> float
+  (** Given a value and the envelope, mindist gives the minimum distance from the value to that envelope *)
 
-  val minmaxdist: t -> envelope -> float
+  val minmaxdist : t -> envelope -> float
+  (** Given a value and the envelope, minmaxdist finds the minimum distance from the value to the envelope where we can be certain that
+      atleast one value is contained within this distance. This can be useful to prune the envelopes while searching for certain values. *)
 end
 
 module type Envelope = sig
