@@ -129,6 +129,39 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | a, b -> { max_node_load = t.max_node_load; tree = Node [ a; b ] }
   (* root split *)
 
+(** Traverse tree and if an element that is equal to 'elem' is found, 
+    remove that element and return `Some tree`else return `None` 
+    
+    t -> Repr.t, runime representation of Tree element type
+    elem -> element to be removed 
+    tree -> root node 
+    
+    If root has child nodes/leaves then recurse on those nodes until leaves are 
+    explored, else return `None` *)
+let rec remove_eq' eq tree = 
+  let removed = ref false in 
+  let rec loop = function 
+    | Node ns -> 
+      Node (List.map (fun (e, tree')  -> (e, loop tree')) ns) 
+    | Leaf es -> 
+      if List.exists (fun (_, elt) -> eq elt) es then 
+        removed := true;
+        Leaf (List.filter (fun (_, elt) -> eq elt |> not) es) 
+    | Empty -> 
+      tree
+  in
+  let res = loop tree in 
+  if !removed then 
+    Some res 
+  else
+    None
+
+let remove_eq t elem tree = 
+  let eq = (Repr.equal t |> Repr.unstage) elem in
+  Option.map (fun tree' -> (tree', elem)) (remove_eq' eq tree)
+
+      
+
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
   let rec find' t e =
