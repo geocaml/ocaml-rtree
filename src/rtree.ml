@@ -129,12 +129,12 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | a, b -> { max_node_load = t.max_node_load; tree = Node [ a; b ] }
   (* root split *)
 
-  let rec remove_eq' eq elem = function
+  let rec remove_eq' eq = function
     | Node ns ->
         let opts, ns' =
           List.map
             (fun (e, t) ->
-              let opt, t' = remove_eq' eq elem t in
+              let opt, t' = remove_eq' eq t in
               (opt, (e, t')))
             ns
           |> List.split
@@ -143,15 +143,15 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         (opts, Node ns')
     | Leaf es ->
         let matching, non_matching =
-          List.partition (fun (_, e) -> eq elem e) es
+          List.partition (fun (_, e) -> eq e) es
         in
         let elts = List.map snd matching in
         (elts, Leaf non_matching)
     | Empty -> ([], Empty)
 
   let remove_eq t ty e =
-    let eq = Repr.equal ty |> Repr.unstage in
-    match remove_eq' eq e t with
+    let eq = (Repr.equal ty |> Repr.unstage) e in
+    match remove_eq' eq t with
     | [], _ -> None
     | (_ as elts), t' -> Some (elts, t')
 
