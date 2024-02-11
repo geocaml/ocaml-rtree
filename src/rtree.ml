@@ -129,38 +129,55 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | a, b -> { max_node_load = t.max_node_load; tree = Node [ a; b ] }
   (* root split *)
 
-(** Traverse tree and if an element that is equal to 'elem' is found, 
-    remove that element and return `Some tree`else return `None` 
-    
-    t -> Repr.t, runime representation of Tree element type
-    elem -> element to be removed 
-    tree -> root node 
-    
-    If root has child nodes/leaves then recurse on those nodes until leaves are 
-    explored, else return `None` *)
-let rec remove_eq' eq tree = 
-  let removed = ref false in 
-  let rec loop = function 
-    | Node ns -> 
-      Node (List.map (fun (e, tree')  -> (e, loop tree')) ns) 
-    | Leaf es -> 
-      if List.exists (fun (_, elt) -> eq elt) es then 
-        removed := true;
-        Leaf (List.filter (fun (_, elt) -> eq elt |> not) es) 
-    | Empty -> 
-      tree
-  in
-  let res = loop tree in 
-  if !removed then 
-    Some res 
-  else
-    None
+  let rec remove_eq' eq elem = function
+    | Node ns ->
+        let opts, ns' =
+          List.map
+            (fun (e, t) ->
+              let opt, t' = remove_eq' eq elem t in
+              (opt, (e, t')))
+            ns
+          |> List.split
+        in
+        let opts = List.concat opts in
+        (opts, Node ns')
+    | Leaf es ->
+        let matching, non_matching =
+          List.partition (fun (_, e) -> eq elem e) es
+        in
+        let elts = List.map snd matching in
+        (elts, Leaf non_matching)
+    | Empty -> ([], Empty)
 
-let remove_eq t elem tree = 
-  let eq = (Repr.equal t |> Repr.unstage) elem in
-  Option.map (fun tree' -> (tree', elem)) (remove_eq' eq tree)
+  let remove_eq t ty e =
+    let eq = Repr.equal ty |> Repr.unstage in
+    match remove_eq' eq e t with
+    | [], _ -> None
+    | (_ as elts), t' -> Some (elts, t')
 
-      
+  let rec remove_env' env = function
+    | Node ns ->
+        let opts, ns' =
+          List.map
+            (fun (e, t) ->
+              let opt, t' = remove_env' env t in
+              (opt, (e, t')))
+            ns
+          |> List.split
+        in
+        let opts = List.concat opts in
+        (opts, Node ns')
+    | Leaf es ->
+        let in_env, out_env =
+          List.partition (fun (e, _) -> E.contains env e) es
+        in
+        (List.map (fun (_, v) -> v) in_env, Leaf out_env)
+    | Empty -> ([], Empty)
+
+  let remove_env t env =
+    match remove_env' env t with
+    | [], _ -> None
+    | (_ as elts), t' -> Some (elts, t')
 
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
