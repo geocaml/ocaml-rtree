@@ -142,9 +142,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         let opts = List.concat opts in
         (opts, Node ns')
     | Leaf es ->
-        let matching, non_matching =
-          List.partition (fun (_, e) -> eq e) es
-        in
+        let matching, non_matching = List.partition (fun (_, e) -> eq e) es in
         let elts = List.map snd matching in
         (elts, Leaf non_matching)
     | Empty -> ([], Empty)
@@ -155,13 +153,21 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | [], _ -> None
     | (_ as elts), t' -> Some (elts, t')
 
+  let rec take_children lst = function
+    | Node ns -> List.split ns |> snd |> List.concat_map (take_children lst) 
+    | Leaf es -> List.split es |> snd |> ( @ ) lst
+    | Empty -> []
+
   let rec remove_env' env = function
     | Node ns ->
         let opts, ns' =
           List.map
             (fun (e, t) ->
-              let opt, t' = remove_env' env t in
-              (opt, (e, t')))
+              if E.contains env e then 
+                (take_children [] t, (e, Empty))
+              else 
+                let opt, t' = remove_env' env t in
+                (opt, (e, t')))
             ns
           |> List.split
         in
