@@ -149,12 +149,10 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let remove_eq t ty e =
     let eq = (Repr.equal ty |> Repr.unstage) e in
-    match remove_eq' eq t with
-    | [], _ -> None
-    | (_ as elts), t' -> Some (elts, t')
+    match remove_eq' eq t with [], _ -> None | elts, t' -> Some (elts, t')
 
   let rec take_children lst = function
-    | Node ns -> List.split ns |> snd |> List.concat_map (take_children lst) 
+    | Node ns -> List.split ns |> snd |> List.concat_map (take_children lst)
     | Leaf es -> List.split es |> snd |> ( @ ) lst
     | Empty -> []
 
@@ -163,9 +161,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         let opts, ns' =
           List.map
             (fun (e, t) ->
-              if E.contains env e then 
-                (take_children [] t, (e, Empty))
-              else 
+              if E.contains env e then (take_children [] t, (e, Empty))
+              else
                 let opt, t' = remove_env' env t in
                 (opt, (e, t')))
             ns
@@ -177,13 +174,11 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         let in_env, out_env =
           List.partition (fun (e, _) -> E.contains env e) es
         in
-        (List.map (fun (_, v) -> v) in_env, Leaf out_env)
+        (List.map snd in_env, Leaf out_env)
     | Empty -> ([], Empty)
 
   let remove_env t env =
-    match remove_env' env t with
-    | [], _ -> None
-    | (_ as elts), t' -> Some (elts, t')
+    match remove_env' env t with [], _ -> None | elts, t' -> Some (elts, t')
 
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
