@@ -234,7 +234,7 @@ let test_size () =
   let calc_depth = R.size t in
   assert (calc_depth = 4)
 
-let test_remove () =
+let test_remove_eq () =
   let module R = R1 in
   let lines =
     [
@@ -252,6 +252,25 @@ let test_remove () =
       assert (R.size t' = 3);
       assert (List.hd vs = List.hd lines)
 
+let test_remove_env () =
+  let module R = R1 in
+  let lines =
+    [
+      { p1 = (0., 0.); p2 = (1., 1.) };
+      { p1 = (1., 1.); p2 = (2., 2.) };
+      { p1 = (2., 2.); p2 = (3., 3.) };
+      { p1 = (3., 3.); p2 = (4., 4.) };
+    ]
+  in
+  let idx = R.load ~max_node_load:2 lines in
+  let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:2. ~y1:2. in
+  let t' = R.remove_env idx env in
+  match t' with
+  | None -> failwith "Unexpected none returned from remove"
+  | Some (vs, t') ->
+      assert (R.size t' = 2);
+      assert (List.length vs = 2)
+
 let suite =
   "R"
   >::: [
@@ -264,7 +283,8 @@ let suite =
          "size" >:: test_size;
          "depth" >:: test_depth;
          "cube" >:: cube;
-         "remove" >:: test_remove;
+         "remove_eq" >:: test_remove_eq;
+         "remove_env" >:: test_remove_env;
        ]
 
 let _ = run_test_tt_main suite
