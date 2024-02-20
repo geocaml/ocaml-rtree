@@ -147,9 +147,11 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         (elts, Leaf non_matching)
     | Empty -> ([], Empty)
 
-  let remove_eq t ty e =
-    let eq = (Repr.equal ty |> Repr.unstage) e in
-    match remove_eq' eq t with [], _ -> None | elts, t' -> Some (elts, t')
+  let remove_eq t e =
+    let eq = (Repr.equal V.t |> Repr.unstage) e in
+    match remove_eq' eq t.tree with
+    | [], _ -> None
+    | elts, t' -> Some (elts, { t with tree = t' })
 
   let rec take_children lst = function
     | Node ns -> List.split ns |> snd |> List.concat_map (take_children lst)
@@ -178,7 +180,9 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Empty -> ([], Empty)
 
   let remove_env t env =
-    match remove_env' env t with [], _ -> None | elts, t' -> Some (elts, t')
+    match remove_env' env t.tree with
+    | [], _ -> None
+    | elts, t' -> Some (elts, { t with tree = t' })
 
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
