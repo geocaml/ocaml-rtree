@@ -278,7 +278,48 @@ let test_remove_empty () =
   let remove_env = R.remove_env empty env in
   let line = { p1 = (0., 0.); p2 = (1., 1.) } in
   let remove_eq = R.remove_eq empty line in
-  assert (Option.is_none remove_env && Option.is_none remove_eq)
+  assert (Option.is_none remove_env);
+  assert (Option.is_none remove_eq)
+
+let test_remove_one () =
+  let module R = R1 in
+  let line = { p1 = (0., 0.); p2 = (1., 1.) } in
+  let t = R.load [ line ] in
+  let removed_env, t_env =
+    R.remove_env t (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1.) |> Option.get
+  in
+  let removed_eq, t_eq = R.remove_eq t line |> Option.get in
+  assert (List.length removed_env == 1);
+  assert (R.size t_env == 0);
+  assert (List.length removed_eq == 1);
+  assert (R.size t_eq == 0)
+
+let test_remove_many () =
+  let module R = R1 in
+  let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1. in
+  let lines =
+    List.init 1_000 (fun _ ->
+        {
+          p1 = (Random.float 1., Random.float 1.);
+          p2 = (Random.float 1., Random.float 1.);
+        })
+  in
+  let t = R.load lines in
+  let t_env = R.remove_env t env in
+  let t_eq =
+    List.fold_left
+      (fun acc line ->
+        assert_bool
+          "Remove_many unexpectedly failed: element not present in tree"
+        @@ Option.is_some acc;
+        R.remove_eq (Option.get acc |> snd) line)
+      (Some ([], t))
+      lines
+  in
+  assert (Option.is_some t_env);
+  assert (R.size (Option.get t_env |> snd) == 0);
+  assert (Option.is_some t_eq);
+  assert (R.size (Option.get t_eq |> snd) == 0)
 
 let suite =
   "R"
@@ -294,6 +335,9 @@ let suite =
          "cube" >:: cube;
          "remove_eq" >:: test_remove_eq;
          "remove_env" >:: test_remove_env;
+         "remove empty" >:: test_remove_empty;
+         "remove one elt from tree of size one" >:: test_remove_one;
+         "remove many" >:: test_remove_many;
        ]
 
 let _ = run_test_tt_main suite
