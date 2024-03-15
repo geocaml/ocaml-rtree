@@ -271,6 +271,15 @@ let test_remove_env () =
       assert (R.size t' = 2);
       assert (List.length vs = 2)
 
+let test_remove_empty () =
+  let module R = R1 in
+  let empty = R.empty 2 in
+  let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1. in
+  let remove_env = R.remove_env empty env in
+  let line = { p1 = (0., 0.); p2 = (1., 1.) } in
+  let remove_eq = R.remove_eq empty line in
+  assert (Option.is_none remove_env && Option.is_none remove_eq)
+
 let suite =
   "R"
   >::: [
