@@ -129,6 +129,61 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | a, b -> { max_node_load = t.max_node_load; tree = Node [ a; b ] }
   (* root split *)
 
+  let rec remove_eq' eq = function
+    | Node ns ->
+        let opts, ns' =
+          List.map
+            (fun (e, t) ->
+              let opt, t' = remove_eq' eq t in
+              (opt, (e, t')))
+            ns
+          |> List.split
+        in
+        let opts = List.concat opts in
+        (opts, Node ns')
+    | Leaf es ->
+        let matching, non_matching = List.partition (fun (_, e) -> eq e) es in
+        let elts = List.map snd matching in
+        (elts, Leaf non_matching)
+    | Empty -> ([], Empty)
+
+  let remove_eq t e =
+    let eq = (Repr.equal V.t |> Repr.unstage) e in
+    match remove_eq' eq t.tree with
+    | [], _ -> None
+    | elts, t' -> Some (elts, { t with tree = t' })
+
+  let rec take_children lst = function
+    | Node ns -> List.split ns |> snd |> List.concat_map (take_children lst)
+    | Leaf es -> List.split es |> snd |> ( @ ) lst
+    | Empty -> []
+
+  let rec remove_env' env = function
+    | Node ns ->
+        let opts, ns' =
+          List.map
+            (fun (e, t) ->
+              if E.contains env e then (take_children [] t, (e, Empty))
+              else
+                let opt, t' = remove_env' env t in
+                (opt, (e, t')))
+            ns
+          |> List.split
+        in
+        let opts = List.concat opts in
+        (opts, Node ns')
+    | Leaf es ->
+        let in_env, out_env =
+          List.partition (fun (e, _) -> E.contains env e) es
+        in
+        (List.map snd in_env, Leaf out_env)
+    | Empty -> ([], Empty)
+
+  let remove_env t env =
+    match remove_env' env t.tree with
+    | [], _ -> None
+    | elts, t' -> Some (elts, { t with tree = t' })
+
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
   let rec find' t e =
