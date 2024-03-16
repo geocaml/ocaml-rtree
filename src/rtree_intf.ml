@@ -109,11 +109,11 @@ module type S = sig
   (** Insert a new element into the tree *)
 
   val remove_env : t -> Envelope.t -> (Value.t list * t) option
-  (** Remove all elements within a certain envelope, 
+  (** [remove_env tree envelope] Remove all elements within a certain envelope, 
       returning them and the new tree or None if none are found *)
 
   val remove_eq : t -> Value.t -> (Value.t list * t) option
-  (** Remove all eelements with equality to the element passed,
+  (** [remove_eq tree element] Remove all elements with equality to the element passed,
       returning them and the new tree, or None if none are found *)
 
   val find : t -> Envelope.t -> Value.t list
