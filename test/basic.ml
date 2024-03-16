@@ -296,7 +296,6 @@ let test_remove_one () =
 
 let test_remove_many () =
   let module R = R1 in
-  let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1. in
   let lines =
     List.init 1_000 (fun _ ->
         {
@@ -305,6 +304,7 @@ let test_remove_many () =
         })
   in
   let t = R.load lines in
+  let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1. in
   let t_env = R.remove_env t env in
   let t_eq =
     List.fold_left
@@ -338,6 +338,26 @@ let test_remove_not_present () =
   assert (Option.is_none t_env);
   assert (Option.is_none t_eq)
 
+let test_count_env () =
+  let module R = R1 in
+  let ranf () = Random.float 0.5 in
+  let in_range =
+    List.init 50 (fun _ -> { p1 = (ranf (), ranf ()); p2 = (ranf (), ranf ()) })
+  in
+  let out_range =
+    List.init 50 (fun _ ->
+        (* Elts in range starting at .5001 to make sure they're not in the envelope *)
+        {
+          p1 = (0.5001 +. ranf (), 0.5001 +. ranf ());
+          p2 = (0.5001 +. ranf (), 0.5001 +. ranf ());
+        })
+  in
+  let t = R.load (in_range @ out_range) in
+  let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:0.5 ~y1:0.5 in
+  let t = R.remove_env t env in
+  assert (Option.is_some t);
+  assert (Option.get t |> snd |> R.size |> ( == ) 50)
+
 let suite =
   "R"
   >::: [
@@ -356,6 +376,7 @@ let suite =
          "remove one elt from tree of size one" >:: test_remove_one;
          "remove many" >:: test_remove_many;
          "remove element not present in tree" >:: test_remove_not_present;
+         "remove elements within an envelope" >:: test_count_env;
        ]
 
 let _ = run_test_tt_main suite
