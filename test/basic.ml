@@ -321,6 +321,23 @@ let test_remove_many () =
   assert (Option.is_some t_eq);
   assert (R.size (Option.get t_eq |> snd) == 0)
 
+let test_remove_not_present () =
+  let module R = R1 in
+  let lines =
+    List.init 1_000 (fun _ ->
+        {
+          p1 = (Random.float 1., Random.float 1.);
+          p2 = (Random.float 1., Random.float 1.);
+        })
+  in
+  let t = R.load lines in
+  let t_env =
+    R.remove_env t (Rtree.Rectangle.v ~x0:1.01 ~y0:1.01 ~x1:2. ~y1:2.)
+  in
+  let t_eq = R.remove_eq t { p1 = (2., 2.); p2 = (3., 3.) } in
+  assert (Option.is_none t_env);
+  assert (Option.is_none t_eq)
+
 let suite =
   "R"
   >::: [
@@ -338,6 +355,7 @@ let suite =
          "remove empty" >:: test_remove_empty;
          "remove one elt from tree of size one" >:: test_remove_one;
          "remove many" >:: test_remove_many;
+         "remove element not present in tree" >:: test_remove_not_present;
        ]
 
 let _ = run_test_tt_main suite
