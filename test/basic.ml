@@ -131,7 +131,9 @@ let omt_loader () =
     ]
   in
   let idx = R.load ~max_node_load:2 lines in
-  print_endline (Repr.to_string R.t idx)
+  print_endline (Repr.to_string R.t idx);
+  let vs = R.values idx in
+  assert (List.length vs = 4)
 
 let rectangle () =
   let r1 = Rtree.Rectangle.v ~x0:(-1.) ~y0:(-1.) ~x1:1. ~y1:1. in

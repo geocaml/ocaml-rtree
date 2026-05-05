@@ -153,8 +153,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let rec values' acc = function
     | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
-    | Leaf vs -> List.map snd vs
-    | Empty -> []
+    | Leaf vs -> (List.map snd vs) @ acc
+    | Empty -> acc
 
   let values t = values' [] t.tree
   let log_base b n = log n /. log b
