@@ -64,8 +64,7 @@ let test_functor _ =
         type envelope = Rtree.Rectangle.t
 
         let envelope i = List.assoc i elems
-      end)
-  in
+      end) in
   let r =
     List.fold_left (fun r (i, _envelope) -> R.insert r i) (R.empty 8) elems
   in
@@ -162,8 +161,7 @@ let test_iter () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-      end)
-  in
+      end) in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
@@ -208,8 +206,7 @@ let test_depth () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-      end)
-  in
+      end) in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };

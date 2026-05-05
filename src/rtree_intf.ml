@@ -1,34 +1,33 @@
 module type Value = sig
-  (** Values are stored in the Rtree and must provide a means
-      of calculating an envelope (minimal bounding box).
+  (** Values are stored in the Rtree and must provide a means of calculating an
+      envelope (minimal bounding box).
 
       {2 An example}
-      A two-dimensional lines that uses {! Rectangle} as a bounding
-      box could be implemented as
+      A two-dimensional lines that uses {! Rectangle} as a bounding box could be
+      implemented as
       {[
-        module Line = struct
-          type t = { p0 : float * float; p1 : float * float }
+      module Line = struct
+        type t = { p0 : float * float; p1 : float * float }
 
-          let t =
-            let open Repr in
-            record "line" (fun p0 p1 -> { p0; p1 })
-            |+ field "p0" (pair float float) (fun t -> t.p0)
-            |+ field "p1" (pair float float) (fun t -> t.p1)
-            |> sealr
+        let t =
+          let open Repr in
+          record "line" (fun p0 p1 -> { p0; p1 })
+          |+ field "p0" (pair float float) (fun t -> t.p0)
+          |+ field "p1" (pair float float) (fun t -> t.p1)
+          |> sealr
 
-          type envelope = Rtree.Rectangle.t
+        type envelope = Rtree.Rectangle.t
 
-          let envelope { p0 = (x1, y1); p1 = (x2, y2) } =
-            let x0 = Float.min x1 x2 in
-            let x1 = Float.max x1 x2 in
-            let y0 = Float.min y1 y2 in
-            let y1 = Float.max y1 y2 in
-            Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-        end
+        let envelope { p0 = x1, y1; p1 = x2, y2 } =
+          let x0 = Float.min x1 x2 in
+          let x1 = Float.max x1 x2 in
+          let y0 = Float.min y1 y2 in
+          let y1 = Float.max y1 y2 in
+          Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
+      end
       ]}
 
-      Note that a runtime representation must also be provided.
-      *)
+      Note that a runtime representation must also be provided. *)
 
   (** {2 Interface} *)
 
@@ -102,8 +101,8 @@ module type S = sig
       same representation used internally. *)
 
   val empty : int -> t
-  (** The empty tree configured with a maximum load size. This
-      is the number of children allowed at a level. *)
+  (** The empty tree configured with a maximum load size. This is the number of
+      children allowed at a level. *)
 
   val insert : t -> Value.t -> t
   (** Insert a new element into the tree *)
@@ -118,18 +117,18 @@ module type S = sig
   (** Returns all the values currently in the index. *)
 
   val load : ?max_node_load:int -> Value.t list -> t
-  (** [load vs] will "bulk" load values into an r-tree. This will produce
-      a better tree and is preferred over folding with {! insert}.
+  (** [load vs] will "bulk" load values into an r-tree. This will produce a
+      better tree and is preferred over folding with {! insert}.
 
-      It uses the {{: https://ceur-ws.org/Vol-74/files/FORUM_18.pdf} OMT algorithm}. *)
+      It uses the
+      {{:https://ceur-ws.org/Vol-74/files/FORUM_18.pdf} OMT algorithm}. *)
 
   val depth : t -> int
   (** [depth tree] returns the depth of the tree. *)
 
   val iter : t -> (tree -> unit) -> unit
-  (** [iter tree f] will apply [f] to every internal tree node in [t].
-      For a {! Node} this will first apply [f] then descend into the
-      children. *)
+  (** [iter tree f] will apply [f] to every internal tree node in [t]. For a
+      {! Node} this will first apply [f] then descend into the children. *)
 end
 
 module type Maker = functor
