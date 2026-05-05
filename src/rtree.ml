@@ -11,7 +11,9 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     let open Repr in
     mu (fun tree ->
         variant "tree_t" (fun node leaf empty -> function
-          | Node lst -> node lst | Leaf s -> leaf s | Empty -> empty)
+          | Node lst -> node lst
+          | Leaf s -> leaf s
+          | Empty -> empty)
         |~ case1 "Node" (list (pair E.t tree)) (fun x -> Node x)
         |~ case1 "Leaf" (list (pair E.t V.t)) (fun x -> Leaf x)
         |~ case0 "Empty" Empty |> sealv)
@@ -153,8 +155,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let rec values' acc = function
     | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
-    | Leaf vs -> List.map snd vs
-    | Empty -> []
+    | Leaf vs -> List.map snd vs @ acc
+    | Empty -> acc
 
   let values t = values' [] t.tree
   let log_base b n = log n /. log b

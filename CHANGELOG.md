@@ -1,3 +1,9 @@
+# v0.1.2 2026-05-05 Liverpool
+
+## Bugs, Fixes and Optimisations
+
+- Fix `values` not returning entire tree (#40, @mdales)
+
 # v0.1.1 2023-08-17 Cambridge
 
 ## Bugs, Fixes and Optimisations

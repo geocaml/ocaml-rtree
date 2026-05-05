@@ -64,8 +64,7 @@ let test_functor _ =
         type envelope = Rtree.Rectangle.t
 
         let envelope i = List.assoc i elems
-      end)
-  in
+      end) in
   let r =
     List.fold_left (fun r (i, _envelope) -> R.insert r i) (R.empty 8) elems
   in
@@ -131,7 +130,9 @@ let omt_loader () =
     ]
   in
   let idx = R.load ~max_node_load:2 lines in
-  print_endline (Repr.to_string R.t idx)
+  print_endline (Repr.to_string R.t idx);
+  let vs = R.values idx in
+  assert (List.length vs = 4)
 
 let rectangle () =
   let r1 = Rtree.Rectangle.v ~x0:(-1.) ~y0:(-1.) ~x1:1. ~y1:1. in
@@ -160,8 +161,7 @@ let test_iter () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-      end)
-  in
+      end) in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
@@ -206,8 +206,7 @@ let test_depth () =
           let y0 = Float.min y1 y2 in
           let y1 = Float.max y1 y2 in
           Rtree.Rectangle.v ~x0 ~y0 ~x1 ~y1
-      end)
-  in
+      end) in
   let lines =
     [
       { p1 = (0., 0.); p2 = (1., 1.) };
