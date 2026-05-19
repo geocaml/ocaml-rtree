@@ -113,6 +113,9 @@ module type S = sig
   val size : t -> int
   (** [size tree] returns the number of element in the tree. *)
 
+  val bounds : t -> Envelope.t option
+  (** [bounds tree] returns the overall bounds of the tree. *)
+
   val values : t -> Value.t list
   (** Returns all the values currently in the index. *)
 
