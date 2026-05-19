@@ -153,6 +153,13 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let size t = size' t.tree
 
+  let bounds' = function
+    | Node lst -> Some (envelope_of_nodes lst)
+    | Leaf vs -> Some (envelope_of_nodes vs)
+    | Empty -> None
+
+  let bounds t = bounds' t.tree
+
   let rec values' acc = function
     | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
     | Leaf vs -> List.map snd vs @ acc

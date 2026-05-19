@@ -3,6 +3,7 @@
 ## Bugs, Fixes and Optimisations
 
 - Fix `values` not returning entire tree (#40, @mdales)
+- Added bounds function to get overall tree dimensions (#42, @mdales)
 
 # v0.1.1 2023-08-17 Cambridge
 

@@ -233,6 +233,27 @@ let test_size () =
   let calc_depth = R.size t in
   assert (calc_depth = 4)
 
+let test_bounds () =
+  let module R = R1 in
+  let lines =
+    [
+      { p1 = (0., 0.); p2 = (1., 1.) };
+      { p1 = (1., 1.); p2 = (2., 2.) };
+      { p1 = (2., 2.); p2 = (3., 3.) };
+      { p1 = (3., 3.); p2 = (4., 4.) };
+    ]
+  in
+  let t = R.load ~max_node_load:2 lines in
+  let bounds = R.bounds t in
+  match bounds with
+  | None -> assert false
+  | Some b ->
+      let x0, x1, y0, y1 = Rtree.Rectangle.coords b in
+      assert (x0 = 0.);
+      assert (y0 = 0.);
+      assert (x1 = 4.);
+      assert (y1 = 4.)
+
 let suite =
   "R"
   >::: [
@@ -243,6 +264,7 @@ let suite =
          "rect" >:: rectangle;
          "iter" >:: test_iter;
          "size" >:: test_size;
+         "bounds" >:: test_bounds;
          "depth" >:: test_depth;
          "cube" >:: cube;
        ]
