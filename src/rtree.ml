@@ -151,8 +151,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let remove_eq t eq =
     match remove_eq' eq t.tree with
-    | [], _ -> [], t
-    | elts, t' -> elts, { t with tree = t' }
+    | [], _ -> ([], t)
+    | elts, t' -> (elts, { t with tree = t' })
 
   let remove t e =
     let eq = (Repr.equal V.t |> Repr.unstage) e in
@@ -188,7 +188,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let remove_env t env =
     match remove_env' env t.tree with
-    | [], _ -> [], t
+    | [], _ -> ([], t)
     | elts, t' -> (elts, { t with tree = t' })
 
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
@@ -219,7 +219,6 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Empty -> None
 
   let bounds t = bounds' t.tree
-
   let log_base b n = log n /. log b
 
   let sort_by_dim entries i =
