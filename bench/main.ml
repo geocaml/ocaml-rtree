@@ -68,6 +68,27 @@ let bench_find_load i =
   in
   Staged.stage run
 
+let bench_remove i =
+  let points = random_points i in
+  let p = List.nth points (i / 2) in
+  let index = Rtree.load ~max_node_load:8 points in
+  let run () =
+    let ps, _tree = Rtree.remove index p in
+    assert (List.exists (fun p' -> p = p') ps)
+  in
+  Staged.stage run
+
+let bench_remove_env i =
+  let points = random_points i in
+  let p = List.take (i / 2) points in
+  let e = Rtree.Envelope.merge_many @@ List.map Point.envelope p in
+  let index = Rtree.load ~max_node_load:8 points in
+  let run () =
+    let ps, tree = Rtree.remove_env index e in
+    Sys.opaque_identity (ps, tree)
+  in
+  Staged.stage run
+
 let suite =
   Test.make_grouped ~name:"rtree"
     [
@@ -86,6 +107,12 @@ let suite =
       Test.make_indexed ~name:"depth" ~fmt:"%s %7d"
         ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
         bench_depth;
+      Test.make_indexed ~name:"remove" ~fmt:"%s %7d"
+        ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
+        bench_remove;
+      Test.make_indexed ~name:"remove_env" ~fmt:"%s %7d"
+        ~args:[ 1_000; 3_000; 10_000; 50_000; 100_000 ]
+        bench_remove_env;
     ]
 
 let metrics =

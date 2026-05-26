@@ -254,7 +254,7 @@ let test_bounds () =
       assert (x1 = 4.);
       assert (y1 = 4.)
 
-let test_remove_eq () =
+let test_remove () =
   let module R = R1 in
   let lines =
     [
@@ -265,12 +265,9 @@ let test_remove_eq () =
     ]
   in
   let idx = R.load ~max_node_load:2 lines in
-  let t' = R.remove_eq idx (List.hd lines) in
-  match t' with
-  | None -> failwith "Unexpected none returned from remove"
-  | Some (vs, t') ->
-      assert (R.size t' = 3);
-      assert (List.hd vs = List.hd lines)
+  let vs, t' = R.remove idx (List.hd lines) in
+  assert (R.size t' = 3);
+  assert (List.hd vs = List.hd lines)
 
 let test_remove_env () =
   let module R = R1 in
@@ -284,35 +281,32 @@ let test_remove_env () =
   in
   let idx = R.load ~max_node_load:2 lines in
   let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:2. ~y1:2. in
-  let t' = R.remove_env idx env in
-  match t' with
-  | None -> failwith "Unexpected none returned from remove"
-  | Some (vs, t') ->
-      assert (R.size t' = 2);
-      assert (List.length vs = 2)
+  let vs, t' = R.remove_env idx env in
+  assert (R.size t' = 2);
+  assert (List.length vs = 2)
 
 let test_remove_empty () =
   let module R = R1 in
   let empty = R.empty 2 in
   let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1. in
-  let remove_env = R.remove_env empty env in
+  let remove_env_vs, _ = R.remove_env empty env in
   let line = { p1 = (0., 0.); p2 = (1., 1.) } in
-  let remove_eq = R.remove_eq empty line in
-  assert (Option.is_none remove_env);
-  assert (Option.is_none remove_eq)
+  let remove_vs, _ = R.remove empty line in
+  assert (remove_env_vs = []);
+  assert (remove_vs = [])
 
 let test_remove_one () =
   let module R = R1 in
   let line = { p1 = (0., 0.); p2 = (1., 1.) } in
   let t = R.load [ line ] in
   let removed_env, t_env =
-    R.remove_env t (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1.) |> Option.get
+    R.remove_env t (Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:1. ~y1:1.)
   in
-  let removed_eq, t_eq = R.remove_eq t line |> Option.get in
-  assert (List.length removed_env == 1);
-  assert (R.size t_env == 0);
-  assert (List.length removed_eq == 1);
-  assert (R.size t_eq == 0)
+  let removed_eq, t_eq = R.remove t line in
+  assert (List.length removed_env = 1);
+  assert (R.size t_env = 0);
+  assert (List.length removed_eq = 1);
+  assert (R.size t_eq = 0)
 
 let test_remove_many () =
   let module R = R1 in
@@ -332,14 +326,14 @@ let test_remove_many () =
         assert_bool
           "Remove_many unexpectedly failed: element not present in tree"
         @@ Option.is_some acc;
-        R.remove_eq (Option.get acc |> snd) line)
+        Some (R.remove (Option.get acc |> snd) line))
       (Some ([], t))
       lines
   in
-  assert (Option.is_some t_env);
-  assert (R.size (Option.get t_env |> snd) == 0);
+  assert ([] <> fst t_env);
+  assert (R.size (t_env |> snd) = 0);
   assert (Option.is_some t_eq);
-  assert (R.size (Option.get t_eq |> snd) == 0)
+  assert (R.size (Option.get t_eq |> snd) = 0)
 
 let test_remove_not_present () =
   let module R = R1 in
@@ -354,9 +348,9 @@ let test_remove_not_present () =
   let t_env =
     R.remove_env t (Rtree.Rectangle.v ~x0:1.01 ~y0:1.01 ~x1:2. ~y1:2.)
   in
-  let t_eq = R.remove_eq t { p1 = (2., 2.); p2 = (3., 3.) } in
-  assert (Option.is_none t_env);
-  assert (Option.is_none t_eq)
+  let t_eq = R.remove t { p1 = (2., 2.); p2 = (3., 3.) } in
+  assert ([] = fst t_env);
+  assert ([] = fst t_eq)
 
 let test_count_env () =
   let module R = R1 in
@@ -375,8 +369,8 @@ let test_count_env () =
   let t = R.load (in_range @ out_range) in
   let env = Rtree.Rectangle.v ~x0:0. ~y0:0. ~x1:0.5 ~y1:0.5 in
   let t = R.remove_env t env in
-  assert (Option.is_some t);
-  assert (Option.get t |> snd |> R.size |> ( == ) 50)
+  assert ([] <> fst t);
+  assert (t |> snd |> R.size |> ( == ) 50)
 
 let suite =
   "R"
@@ -391,7 +385,7 @@ let suite =
          "bounds" >:: test_bounds;
          "depth" >:: test_depth;
          "cube" >:: cube;
-         "remove_eq" >:: test_remove_eq;
+         "remove" >:: test_remove;
          "remove_env" >:: test_remove_env;
          "remove empty" >:: test_remove_empty;
          "remove one elt from tree of size one" >:: test_remove_one;

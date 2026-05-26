@@ -149,23 +149,28 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
         (elts, Leaf non_matching)
     | Empty -> ([], Empty)
 
-  let remove_eq t e =
-    let eq = (Repr.equal V.t |> Repr.unstage) e in
+  let remove_eq t eq =
     match remove_eq' eq t.tree with
-    | [], _ -> None
-    | elts, t' -> Some (elts, { t with tree = t' })
+    | [], _ -> [], t
+    | elts, t' -> elts, { t with tree = t' }
 
-  let rec take_children lst = function
-    | Node ns -> List.split ns |> snd |> List.concat_map (take_children lst)
-    | Leaf es -> List.split es |> snd |> ( @ ) lst
-    | Empty -> []
+  let remove t e =
+    let eq = (Repr.equal V.t |> Repr.unstage) e in
+    remove_eq t eq
+
+  let rec values' acc = function
+    | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
+    | Leaf vs -> List.map snd vs @ acc
+    | Empty -> acc
+
+  let values t = values' [] t.tree
 
   let rec remove_env' env = function
     | Node ns ->
         let opts, ns' =
           List.map
             (fun (e, t) ->
-              if E.contains env e then (take_children [] t, (e, Empty))
+              if E.contains env e then (values' [] t, (e, Empty))
               else
                 let opt, t' = remove_env' env t in
                 (opt, (e, t')))
@@ -183,8 +188,8 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let remove_env t env =
     match remove_env' env t.tree with
-    | [], _ -> None
-    | elts, t' -> Some (elts, { t with tree = t' })
+    | [], _ -> [], t
+    | elts, t' -> (elts, { t with tree = t' })
 
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
@@ -215,12 +220,6 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   let bounds t = bounds' t.tree
 
-  let rec values' acc = function
-    | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
-    | Leaf vs -> List.map snd vs @ acc
-    | Empty -> acc
-
-  let values t = values' [] t.tree
   let log_base b n = log n /. log b
 
   let sort_by_dim entries i =
