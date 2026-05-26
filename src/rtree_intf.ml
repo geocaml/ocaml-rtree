@@ -107,6 +107,19 @@ module type S = sig
   val insert : t -> Value.t -> t
   (** Insert a new element into the tree *)
 
+  val remove : t -> Value.t -> Value.t list * t
+  (** [remove tree element] removes all elements with equality to the element
+      passed, returning them and the new tree, or [None] if none are found *)
+
+  val remove_eq : t -> (Value.t -> bool) -> Value.t list * t
+  (** [remove_eq tree pred] removes all elements where [pred] returns [true],
+      returning them and the new tree. If the values returned is empty then no
+      elements were found and the tree is unchanged. *)
+
+  val remove_env : t -> Envelope.t -> Value.t list * t
+  (** [remove_env tree envelope] removes all elements within a certain envelope,
+      returning them and the new tree or [None] if none are found *)
+
   val find : t -> Envelope.t -> Value.t list
   (** [find tree env] find all value contained by [env] in [tree]. *)
 
@@ -114,7 +127,8 @@ module type S = sig
   (** [size tree] returns the number of element in the tree. *)
 
   val bounds : t -> Envelope.t option
-  (** [bounds tree] returns the overall bounds of the tree. [None] is returned for the empty tree. *)
+  (** [bounds tree] returns the overall bounds of the tree. [None] is returned
+      for the empty tree. *)
 
   val values : t -> Value.t list
   (** Returns all the values currently in the index. *)

@@ -1,4 +1,6 @@
-# v0.1.2 2026-05-05 Liverpool
+# v0.2.0 2026-05-05 Belfast
+
+- Add a set of `remove` functions (#44, @FayCarsons)
 
 ## Bugs, Fixes and Optimisations
 

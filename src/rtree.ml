@@ -131,6 +131,66 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | a, b -> { max_node_load = t.max_node_load; tree = Node [ a; b ] }
   (* root split *)
 
+  let rec remove_eq' eq = function
+    | Node ns ->
+        let opts, ns' =
+          List.map
+            (fun (e, t) ->
+              let opt, t' = remove_eq' eq t in
+              (opt, (e, t')))
+            ns
+          |> List.split
+        in
+        let opts = List.concat opts in
+        (opts, Node ns')
+    | Leaf es ->
+        let matching, non_matching = List.partition (fun (_, e) -> eq e) es in
+        let elts = List.map snd matching in
+        (elts, Leaf non_matching)
+    | Empty -> ([], Empty)
+
+  let remove_eq t eq =
+    match remove_eq' eq t.tree with
+    | [], _ -> ([], t)
+    | elts, t' -> (elts, { t with tree = t' })
+
+  let remove t e =
+    let eq = (Repr.equal V.t |> Repr.unstage) e in
+    remove_eq t eq
+
+  let rec values' acc = function
+    | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
+    | Leaf vs -> List.map snd vs @ acc
+    | Empty -> acc
+
+  let values t = values' [] t.tree
+
+  let rec remove_env' env = function
+    | Node ns ->
+        let opts, ns' =
+          List.map
+            (fun (e, t) ->
+              if E.contains env e then (values' [] t, (e, Empty))
+              else
+                let opt, t' = remove_env' env t in
+                (opt, (e, t')))
+            ns
+          |> List.split
+        in
+        let opts = List.concat opts in
+        (opts, Node ns')
+    | Leaf es ->
+        let in_env, out_env =
+          List.partition (fun (e, _) -> E.contains env e) es
+        in
+        (List.map snd in_env, Leaf out_env)
+    | Empty -> ([], Empty)
+
+  let remove_env t env =
+    match remove_env' env t.tree with
+    | [], _ -> ([], t)
+    | elts, t' -> (elts, { t with tree = t' })
+
   let filter_intersecting e = List.filter (fun (e', _) -> E.intersects e e')
 
   let rec find' t e =
@@ -159,13 +219,6 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | Empty -> None
 
   let bounds t = bounds' t.tree
-
-  let rec values' acc = function
-    | Node lst -> List.fold_left (fun a (_, v) -> values' a v) acc lst
-    | Leaf vs -> List.map snd vs @ acc
-    | Empty -> acc
-
-  let values t = values' [] t.tree
   let log_base b n = log n /. log b
 
   let sort_by_dim entries i =
