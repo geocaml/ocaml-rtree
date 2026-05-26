@@ -1,5 +1,14 @@
 open Bechamel
 
+module List = struct
+  include Stdlib.List
+
+  let rec take n = function
+    | [] -> []
+    | _ when n = 0 -> []
+    | x :: rest -> x :: take (n - 1) rest
+end
+
 let () = Random.init 42
 
 module Point = struct
