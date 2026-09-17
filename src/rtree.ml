@@ -7,26 +7,15 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
 
   type tree = Node of (E.t * tree) list | Leaf of (E.t * V.t) list | Empty
 
-  let tree_t =
-    let open Repr in
-    mu (fun tree ->
-        variant "tree_t" (fun node leaf empty -> function
-          | Node lst -> node lst
-          | Leaf s -> leaf s
-          | Empty -> empty)
-        |~ case1 "Node" (list (pair E.t tree)) (fun x -> Node x)
-        |~ case1 "Leaf" (list (pair E.t V.t)) (fun x -> Leaf x)
-        |~ case0 "Empty" Empty |> sealv)
+  let rec pp_tree ppf = function
+    | Empty -> Format.fprintf ppf "[]"
+    | Leaf vs -> Fmt.(brackets @@ list (parens @@ pair E.pp V.pp)) ppf vs
+    | Node es ->
+        Fmt.(oxford_brackets @@ list (parens @@ pair E.pp pp_tree)) ppf es
 
   type t = { max_node_load : int; tree : tree }
 
-  let t =
-    let open Repr in
-    record "t" (fun max_node_load tree -> { max_node_load; tree })
-    |+ field "max_node_load" int (fun t -> t.max_node_load)
-    |+ field "tree" tree_t (fun t -> t.tree)
-    |> sealr
-
+  let pp ppf t = pp_tree ppf t.tree
   let tree t = t.tree
 
   let empty max_node_load =
@@ -155,7 +144,7 @@ module Make (E : Envelope) (V : Value with type envelope = E.t) = struct
     | elts, t' -> (elts, { t with tree = t' })
 
   let remove t e =
-    let eq = (Repr.equal V.t |> Repr.unstage) e in
+    let eq = V.equal e in
     remove_eq t eq
 
   let rec values' acc = function

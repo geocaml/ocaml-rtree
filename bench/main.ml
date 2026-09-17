@@ -14,12 +14,8 @@ let () = Random.init 42
 module Point = struct
   type t = { x : float; y : float }
 
-  let t =
-    let open Repr in
-    record "t" (fun x y -> { x; y })
-    |+ field "x" float (fun t -> t.x)
-    |+ field "y" float (fun t -> t.y)
-    |> sealr
+  let equal a b = Float.equal a.x b.x && Float.equal a.y b.y
+  let pp ppf t = Format.fprintf ppf "{ x: %.2f, y: %.2f }" t.x t.y
 
   type envelope = Rtree.Rectangle.t
 

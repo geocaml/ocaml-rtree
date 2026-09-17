@@ -4,14 +4,13 @@ module Line = struct
   type t = Gg.P2.t * Gg.P2.t
   type envelope = Rtree.Rectangle.t
 
-  let t =
-    let open Repr in
-    let point =
-      Repr.map (pair float float)
-        (fun (x, y) -> Gg.P2.v x y)
-        (fun p -> (Gg.P2.x p, Gg.P2.y p))
-    in
-    Repr.pair point point
+  let equal (a1, a2) (b1, b2) =
+    Float.equal (Gg.P2.x a1) (Gg.P2.x b1)
+    && Float.equal (Gg.P2.y a1) (Gg.P2.y b1)
+    && Float.equal (Gg.P2.x a2) (Gg.P2.x b2)
+    && Float.equal (Gg.P2.y a2) (Gg.P2.y b2)
+
+  let pp ppf ((a, b) : t) = Format.fprintf ppf "(%a, %a)" Gg.V2.pp a Gg.V2.pp b
 
   let envelope (p1, p2) =
     let x0 = min (Gg.P2.x p1) (Gg.P2.x p2) in
@@ -23,16 +22,13 @@ end
 
 module Point = struct
   type t = Gg.P2.t
-  type envelope = Rtree.Rectangle.t
 
-  let t =
-    let open Repr in
-    let point =
-      Repr.map (pair float float)
-        (fun (x, y) -> Gg.P2.v x y)
-        (fun p -> (Gg.P2.x p, Gg.P2.y p))
-    in
-    point
+  let equal a b =
+    Float.equal (Gg.P2.x a) (Gg.P2.x b) && Float.equal (Gg.P2.y a) (Gg.P2.y b)
+
+  let pp ppf a = Format.fprintf ppf "%a" Gg.V2.pp a
+
+  type envelope = Rtree.Rectangle.t
 
   let envelope p1 =
     let x0 = Gg.P2.x p1 in

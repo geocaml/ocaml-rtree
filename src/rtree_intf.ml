@@ -8,15 +8,9 @@ module type Value = sig
       {[
       module Line = struct
         type t = { p0 : float * float; p1 : float * float }
-
-        let t =
-          let open Repr in
-          record "line" (fun p0 p1 -> { p0; p1 })
-          |+ field "p0" (pair float float) (fun t -> t.p0)
-          |+ field "p1" (pair float float) (fun t -> t.p1)
-          |> sealr
-
         type envelope = Rtree.Rectangle.t
+
+        let equal = Stdlib.( = )
 
         let envelope { p0 = x1, y1; p1 = x2, y2 } =
           let x0 = Float.min x1 x2 in
@@ -34,8 +28,11 @@ module type Value = sig
   type t
   (** A type for things stored in the Rtree. *)
 
-  val t : t Repr.t
-  (** A runtime representation of values. *)
+  val equal : t -> t -> bool
+  (** [equal a b] checks if the value [a] is equal to [b]. *)
+
+  val pp : Format.formatter -> t -> unit
+  (** [pp fmt v] is a pretty printer for values. *)
 
   type envelope
   (** A type for envelopes in the Rtree. *)
@@ -56,9 +53,6 @@ module type Envelope = sig
 
       Raises [Invalid_arg] if [i >= dimensions]. *)
 
-  val t : t Repr.t
-  (** A runtime representation of envelopes. *)
-
   val empty : t
   (** The empty envelope. *)
 
@@ -76,14 +70,14 @@ module type Envelope = sig
 
   val contains : t -> t -> bool
   (** [contains a b] asks whether [b] is contained by [a]. *)
+
+  val pp : Format.formatter -> t -> unit
+  (** [pp ppf t] pretty prints the envelope [t]. *)
 end
 
 module type S = sig
   type t
   (** An Rtree. *)
-
-  val t : t Repr.t
-  (** A runtime representation of the rtree. *)
 
   module Envelope : Envelope
   (** Envelopes for the Rtree. *)
@@ -146,6 +140,9 @@ module type S = sig
   val iter : t -> (tree -> unit) -> unit
   (** [iter tree f] will apply [f] to every internal tree node in [t]. For a
       {! Node} this will first apply [f] then descend into the children. *)
+
+  val pp : Format.formatter -> t -> unit
+  (* [pp ppf t] pretty prints the rtree [t]. *)
 end
 
 module type Maker = functor
