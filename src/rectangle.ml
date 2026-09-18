@@ -8,17 +8,18 @@ let x0 arr = Array.Floatarray.unsafe_get arr 0
 let x1 arr = Array.Floatarray.unsafe_get arr 1
 let y0 arr = Array.Floatarray.unsafe_get arr 2
 let y1 arr = Array.Floatarray.unsafe_get arr 3
+let pp_float = Format.pp_print_float
+
+let pp ppf arr =
+  let pair pp1 pp2 = Fmt.(parens (pair pp1 pp2)) in
+  let v = ((x0 arr, x1 arr), (y0 arr, y1 arr)) in
+  pair (pair pp_float pp_float) (pair pp_float pp_float) ppf v
 
 let compare_dim i arr arr' =
   match i with
   | 0 -> Float.compare (x0 arr) (x0 arr')
   | 1 -> Float.compare (y0 arr) (y0 arr')
   | n -> invalid_arg ("Only two dimensions and you accessed " ^ string_of_int n)
-
-let t =
-  let to_array arr = Float.Array.to_list arr |> Array.of_list in
-  let of_array arr = Array.to_list arr |> Float.Array.of_list in
-  Repr.(map (array float) of_array to_array)
 
 let coords arr =
   ( Array.Floatarray.unsafe_get arr 0,

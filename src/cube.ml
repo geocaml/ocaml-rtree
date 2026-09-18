@@ -10,6 +10,16 @@ let y0 arr = Array.Floatarray.unsafe_get arr 2
 let y1 arr = Array.Floatarray.unsafe_get arr 3
 let z0 arr = Array.Floatarray.unsafe_get arr 4
 let z1 arr = Array.Floatarray.unsafe_get arr 5
+let pp_float = Format.pp_print_float
+
+let pp ppf arr =
+  let triple pp1 pp2 pp3 = Fmt.(parens (triple pp1 pp2 pp3)) in
+  let v = ((x0 arr, x1 arr), (y0 arr, y1 arr), (z0 arr, z1 arr)) in
+  triple
+    Fmt.(pair pp_float pp_float)
+    Fmt.(pair pp_float pp_float)
+    Fmt.(pair pp_float pp_float)
+    ppf v
 
 let compare_dim i arr arr' =
   match i with
@@ -18,11 +28,6 @@ let compare_dim i arr arr' =
   | 2 -> Float.compare (z0 arr) (z0 arr')
   | n ->
       invalid_arg ("Only three dimensions and you accessed " ^ string_of_int n)
-
-let t =
-  let to_array arr = Float.Array.to_list arr |> Array.of_list in
-  let of_array arr = Array.to_list arr |> Float.Array.of_list in
-  Repr.(map (array float) of_array to_array)
 
 let coords arr =
   ( Array.Floatarray.unsafe_get arr 0,

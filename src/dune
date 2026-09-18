@@ -1,7 +1,6 @@
 (library
  (name rtree)
- (public_name rtree)
- (libraries repr))
+ (public_name rtree))
 
 (documentation
  (package rtree))

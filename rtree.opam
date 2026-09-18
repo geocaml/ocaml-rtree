@@ -5,13 +5,12 @@ description:
   "This implements a simple, functional R-Tree library in pure OCaml with support for efficient bulk loading of values."
 maintainer: ["patrick@sirref.org"]
 authors: ["Marius A. Eriksen" "Patrick Ferris"]
-license: "BSD-3-Clause"
+license: ["BSD-3-Clause" "ISC"]
 tags: ["spatial" "index"]
 homepage: "https://github.com/geocaml/ocaml-rtree"
 bug-reports: "https://github.com/geocaml/ocaml-rtree/issues"
 depends: [
   "dune" {>= "3.6"}
-  "repr" {>= "0.4.0"}
   "bechamel" {with-test}
   "vg" {with-test}
   "ounit2" {with-test}

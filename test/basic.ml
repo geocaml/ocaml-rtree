@@ -5,7 +5,8 @@ let pre_made_envelopes = ref []
 module V = struct
   type t = int
 
-  let t = Repr.int
+  let pp = Format.pp_print_int
+  let equal = Int.equal
 
   type envelope = Rtree.Rectangle.t
 
@@ -59,7 +60,8 @@ let test_functor _ =
       (struct
         type t = int
 
-        let t = Repr.int
+        let pp = Format.pp_print_int
+        let equal = Int.equal
 
         type envelope = Rtree.Rectangle.t
 
@@ -77,12 +79,9 @@ let test_functor _ =
 
 type line = { p1 : float * float; p2 : float * float }
 
-let lint_t =
-  let open Repr in
-  record "line" (fun p1 p2 -> { p1; p2 })
-  |+ field "p1" (pair float float) (fun t -> t.p1)
-  |+ field "p2" (pair float float) (fun t -> t.p2)
-  |> sealr
+let pp_line ppf t =
+  Format.fprintf ppf "{ p1: (%.2f, %.2f), p2: (%.2f, %.2f) }" (fst t.p1)
+    (snd t.p1) (fst t.p2) (snd t.p2)
 
 module R1 =
   Rtree.Make
@@ -90,7 +89,8 @@ module R1 =
     (struct
       type t = line
 
-      let t = lint_t
+      let equal = Stdlib.( = )
+      let pp = pp_line
 
       type envelope = Rtree.Rectangle.t
 
@@ -130,7 +130,6 @@ let omt_loader () =
     ]
   in
   let idx = R.load ~max_node_load:2 lines in
-  print_endline (Repr.to_string R.t idx);
   let vs = R.values idx in
   assert (List.length vs = 4)
 
@@ -151,7 +150,8 @@ let test_iter () =
       (struct
         type t = line
 
-        let t = lint_t
+        let equal = Stdlib.( = )
+        let pp = pp_line
 
         type envelope = Rtree.Rectangle.t
 
@@ -196,7 +196,8 @@ let test_depth () =
       (struct
         type t = line
 
-        let t = lint_t
+        let equal = Stdlib.( = )
+        let pp = pp_line
 
         type envelope = Rtree.Rectangle.t
 

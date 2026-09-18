@@ -1,3 +1,9 @@
+# unreleased <YYYY-MM-DD> <loc>
+
+- Remove dependency on `repr`. Users of this library will now have to provide
+  their own `equal` and `pp` functions for the values they are storing in
+  their rtree (#45, @patricoferris).
+
 # v0.2.0 2026-05-05 Belfast
 
 - Add a set of `remove` functions (#44, @FayCarsons)

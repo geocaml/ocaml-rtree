@@ -1,7 +1,6 @@
 (tests
- (names basic persist)
- (modules basic persist)
- (deps r.idx)
+ (names basic)
+ (modules basic)
  (libraries ounit2 rtree))
 
 (executable
